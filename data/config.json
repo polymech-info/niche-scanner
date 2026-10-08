@@ -1,0 +1,34 @@
+{
+  "blacklist": [
+    "premiere",
+    "iphone",
+    "samsung"
+  ],
+  "product": {
+    "name": "Tanit",
+    "summary": "Windows desktop app. Not Mac, not mobile",
+    "platforms": [
+      "windows"
+    ],
+    "notPlatforms": [
+      "mac",
+      "ios",
+      "android",
+      "iphone",
+      "samsung",
+      "mobile"
+    ],
+    "doesNot": [
+      "mac app",
+      "iphone app",
+      "android app"
+    ]
+  },
+  "capabilities": {
+    "disabled": [
+      "documentation:feature-cms"
+    ],
+    "disabledWorkflows": [],
+    "custom": []
+  }
+}

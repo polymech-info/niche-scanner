@@ -1,0 +1,101 @@
+{
+  "name": "@polymech/niche-scanner",
+  "version": "0.2.0",
+  "description": "Search niches from product capabilities, enrich with Google data, write follow-up reports",
+  "type": "module",
+  "main": "./dist/lib/index.js",
+  "bin": {
+    "phrases": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev:server": "tsx watch --clear-screen=false src/cli.ts serve --no-browser",
+    "dev:client": "rspack dev --mode development",
+    "dev": "concurrently -k --kill-signal SIGKILL -n server,client -c blue,magenta \"tsx watch --clear-screen=false src/cli.ts serve --no-browser\" \"node ./scripts/wait-and-rspack.mjs\"",
+    "build:client": "rspack build --mode production",
+    "build:web": "rspack build --mode production --env preset=web",
+    "build:server": "tsc -p tsconfig.server.json",
+    "build": "npm run build:client && npm run build:server",
+    "start": "node dist/cli.js serve",
+    "deploy:web": "npm run build:web && node deploy-web.mjs",
+    "deploy:gh": "cd ../.. && npm run publish:gh:niche-scanner",
+    "search": "tsx src/cli.ts search",
+    "capabilities:capture": "tsx scripts/capabilities/capture.ts",
+    "capabilities:compile": "tsx scripts/capabilities/compile.ts",
+    "capabilities:refresh": "npm run capabilities:capture && npm run capabilities:compile",
+    "test": "tsx --test src/lib/score.test.ts src/shared/classify.test.ts src/shared/article-package.test.ts src/shared/outcome-hubs.test.ts src/shared/capabilities.test.ts src/shared/capability-overlay.test.ts src/lib/opportunity-discovery.test.ts src/lib/product-plan.test.ts src/lib/enrichers/meta.test.ts src/shared/snapshot.test.ts src/shared/neighbors.test.ts src/shared/config.test.ts src/lib/serp-parse.test.ts src/shared/ranking.test.ts",
+    "test:e2e:video-screen-recorder": "node scripts/e2e/video-screen-recorder.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@radix-ui/react-collapsible": "^1.1.20",
+    "@tanstack/react-query": "^5.101.4",
+    "@tanstack/react-router": "^1.170.31",
+    "cheerio": "^1.2.0",
+    "dotenv": "^16.4.7",
+    "express": "^5.2.1",
+    "fast-glob": "^3.3.3",
+    "open": "^11.0.0",
+    "pino": "^10.3.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "tree-kill": "^1.2.2",
+    "ws": "^8.21.3",
+    "yaml": "^2.9.0",
+    "yargs": "^18.0.0"
+  },
+  "devDependencies": {
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/ibm-plex-sans": "^5.3.0",
+    "@rspack/cli": "^2.1.10",
+    "@rspack/core": "^2.1.10",
+    "@rspack/dev-server": "^2.2.0",
+    "@rspack/plugin-react-refresh": "^2.0.2",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@types/ws": "^8.18.1",
+    "@types/yargs": "^17.0.35",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/addon-web-links": "^0.12.0",
+    "@xterm/xterm": "^6.0.0",
+    "autoprefixer": "^10.5.4",
+    "concurrently": "^10.0.4",
+    "css-loader": "^7.1.4",
+    "lucide-react": "^1.31.0",
+    "postcss": "^8.5.26",
+    "postcss-loader": "^8.2.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-refresh": "^0.18.0",
+    "style-loader": "^4.0.0",
+    "tailwindcss": "^3.4.19",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3",
+    "zustand": "^5.0.15"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://github.com/polymech-info/niche-scanner",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/polymech-info/niche-scanner.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "serpapi",
+    "seo",
+    "niches",
+    "capabilities",
+    "product-plan",
+    "gui",
+    "cli"
+  ]
+}
