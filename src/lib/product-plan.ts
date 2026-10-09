@@ -2,7 +2,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import {
   buildProductPlan,
+  expandProductPlanJobs,
+  documentationIntentJobs,
   harvestProductJobs,
+  heuristicIntentSeeds,
   type ProductJob,
   type ProductJobDiscovery,
   type ProductPlan,
@@ -10,6 +13,7 @@ import {
   type ProductPlanDecision,
   type ProductPlanEvidence,
 } from "../shared/product-plan.js";
+import { runLlmEach } from "./llm-each.js";
 import {
   DEFAULT_LOCALE,
   normalizePhrase,
@@ -22,6 +26,7 @@ import {
 } from "../shared/phrases.js";
 import { isQuestion } from "./score.js";
 import { loadCapabilitySnapshot } from "./capabilities.js";
+import type { ProductCapabilitySnapshot } from "../shared/capabilities.js";
 import { loadAppConfig } from "./app-config.js";
 import { resolvedResultsDir } from "./env.js";
 import {
@@ -41,20 +46,24 @@ import { describeSerpError, fetchAiOverview, fetchGoogleSerp } from "./serpapi.j
 import { runShell } from "./shell.js";
 import {
   discoveryDigest,
+  expandDigest,
   organicUrls,
   productPlanCacheDir,
   readDecideCache,
   readDiscoveryCache,
   readEnrichCache,
+  readExpandCache,
   readQualifyCache,
   serpOnlyEvidence,
   writeDecideCache,
   writeDiscoveryCache,
   writeEnrichCache,
+  writeExpandCache,
   writeQualifyCache,
   deleteDecideCache,
   deleteJobStageCache,
   deletePlanCache,
+  type ExpandFill,
 } from "./product-plan-cache.js";
 import {
   beginProductPlanRun,
@@ -73,6 +82,8 @@ export interface ProductPlanInput {
   maxJobs?: number;
   decide?: boolean;
   decisionDir?: string;
+  /** LLM fill of intent seeds / notThis before SERP. Docs still split without this. */
+  expand?: boolean;
   qualify?: boolean;
   /** Fetch ranking-page meta for pillar chapters (needs qualify results or cache). */
   enrich?: boolean;
@@ -82,6 +93,7 @@ export interface ProductPlanInput {
   useCache?: boolean;
   forceDiscover?: boolean;
   forceDecide?: boolean;
+  forceExpand?: boolean;
   forceQualify?: boolean;
   forceEnrich?: boolean;
 }
@@ -98,6 +110,7 @@ export interface ProductPlanDependencies {
   decide?: (
     chapters: ProductPlanChapter[]
   ) => Promise<ReadonlyMap<string, ProductPlanDecision>>;
+  expand?: (jobs: ProductJob[]) => Promise<ProductJob[]>;
   qualify?: (
     chapter: ProductPlanChapter,
     locale: Locale
@@ -122,19 +135,37 @@ function discoveryOptions(calls: 2 | 4): DiscoverOptions {
 }
 
 export function productJobSeeds(job: ProductJob): string[] {
+  if (Array.isArray(job.seeds)) return asStringList(job.seeds).slice(0, 4);
   if (job.id === "job:workflow:video-recorder") {
     return ["screen recording", "how to record screen"];
   }
   if (job.id === "job:documentation:feature-markdown") {
     return ["markdown viewer", "how to view markdown files"];
   }
+  if (job.proofKind === "intent") return heuristicIntentSeeds(job.label);
   return [job.label, `how to ${job.label}`];
 }
 
-function selectJobs(jobs: ProductJob[], input: ProductPlanInput): ProductJob[] {
+export function selectProductPlanJobs(
+  snapshot: ProductCapabilitySnapshot,
+  input: ProductPlanInput
+): ProductJob[] {
+  const harvested = harvestProductJobs(snapshot);
+  const extra = harvested.flatMap((job) => {
+    const cap = snapshot.capabilities.find(
+      (node) =>
+        node.id ===
+        (job.proofIds.find((proof) => proof.startsWith("documentation:")) ??
+          job.id.replace(/^job:/, ""))
+    );
+    const intents = documentationIntentJobs(job, cap);
+    return intents.length >= 2 ? intents : [];
+  });
+  const catalog = [...harvested, ...extra];
   const ids = new Set(input.jobIds ?? []);
-  const selected = ids.size ? jobs.filter((job) => ids.has(job.id)) : jobs;
-  return selected.slice(0, Math.max(1, input.maxJobs ?? selected.length));
+  const picked = ids.size ? catalog.filter((job) => ids.has(job.id)) : harvested;
+  const expanded = expandProductPlanJobs(picked, snapshot.capabilities);
+  return expanded.slice(0, Math.max(1, input.maxJobs ?? expanded.length));
 }
 
 async function defaultDiscovery(
@@ -403,6 +434,109 @@ export async function decideProductPlanWithCli(
     });
   }
   return result;
+}
+
+const INTENT_PROMPT =
+  'Reply with ONLY a JSON object (no markdown): {"seeds":["","",""],"notThis":["",""],"job":""}. Fill a seed only when it is noteworthy and search-eligible: a question a person would type (prefer how to / can I), no product brand, no CLI flags, no implementation trivia. Leave "" when it is not. Empty slots are dropped. notThis only if a nearby popular query would steal the SERP; else "". job is one-line product path or "".';
+
+function asStringList(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return [
+    ...new Set(
+      raw
+        .map((item) => String(item ?? "").replace(/\s+/g, " ").trim())
+        .filter(
+          (item) =>
+            item.length > 2 &&
+            item.length < 80 &&
+            item !== "..." &&
+            !/^\.+$/.test(item)
+        )
+    ),
+  ];
+}
+
+function applyIntentFills(
+  jobs: ProductJob[],
+  fills: Record<string, ExpandFill>
+): ProductJob[] {
+  return jobs.map((job) => {
+    const fill = fills[job.id];
+    if (!fill) return job;
+    return {
+      ...job,
+      seeds: asStringList(fill.seeds).slice(0, 4),
+      notThis: asStringList(fill.notThis),
+    };
+  });
+}
+
+export async function expandProductPlanIntentsWithCli(
+  jobs: ProductJob[],
+  dir: string,
+  force = false
+): Promise<ProductJob[]> {
+  const intents = jobs.filter((job) => job.proofKind === "intent");
+  if (!intents.length) return jobs;
+  await fs.mkdir(dir, { recursive: true });
+  const source = path.join(dir, "product-plan.expand.in.json");
+  const dest = path.join(dir, "product-plan.expand.out.json");
+  await fs.writeFile(
+    source,
+    `${JSON.stringify(
+      {
+        items: intents.map((job) => ({
+          id: job.id,
+          parent: job.parentId,
+          label: job.label,
+          summary: job.summary,
+          command: job.command,
+          brief: [
+            job.label,
+            job.summary,
+            job.command ? `CLI: ${job.command}` : "",
+          ]
+            .filter(Boolean)
+            .join("\n"),
+        })),
+      },
+      null,
+      2
+    )}\n`,
+    "utf8"
+  );
+  const dryRun = process.env.PHRASES_LLM_DRY === "1";
+  const llm = await runLlmEach({
+    source,
+    dest,
+    selector: ".items[].brief",
+    prompt: INTENT_PROMPT,
+    force,
+    dryRun,
+  });
+  if (dryRun) return jobs;
+  if (!llm.matched) {
+    throw new Error(
+      `tanit-cli each matched 0 leaves with .items[].brief (${llm.transformed} transformed)`
+    );
+  }
+  const output = (llm.output ?? {}) as {
+    items?: Array<{
+      id?: string;
+      seeds?: unknown;
+      notThis?: unknown;
+      job?: unknown;
+    }>;
+  };
+  const fills: Record<string, ExpandFill> = {};
+  for (const item of output.items ?? []) {
+    if (!item.id) continue;
+    fills[item.id] = {
+      seeds: asStringList(item.seeds).slice(0, 4),
+      notThis: asStringList(item.notThis).slice(0, 4),
+    };
+  }
+  return applyIntentFills(jobs, fills);
 }
 
 const MIN_QUESTIONS_MD = 5;
@@ -684,6 +818,8 @@ const PLAN_ARTIFACTS = [
   "product-plan.decide.in.json",
   "product-plan.decide.out.json",
   "product-plan.questions.json",
+  "product-plan.expand.in.json",
+  "product-plan.expand.out.json",
 ];
 
 function recountPlan(plan: ProductPlan): ProductPlan {
@@ -759,7 +895,7 @@ export async function runProductPlan(
     (deps.loadSnapshot ?? loadCapabilitySnapshot)(input.snapshotPath),
     (deps.loadSettings ?? loadAppConfig)(),
   ]);
-  const jobs = selectJobs(harvestProductJobs(snapshot), input);
+  const jobs = selectProductPlanJobs(snapshot, input);
   beginProductPlanRun({ outDir, jobs: jobs.length });
   try {
     return await runProductPlanBody(input, deps, {
@@ -782,7 +918,8 @@ async function runProductPlanBody(
     jobs: ProductJob[];
   }
 ): Promise<ProductPlan> {
-  const { snapshot, settings, jobs } = loaded;
+  const { snapshot, settings } = loaded;
+  let jobs = loaded.jobs;
   if (!jobs.length) throw new Error("No product jobs matched the requested sample");
   const locale = { ...DEFAULT_LOCALE, ...input.locale };
   const calls = input.serpCallsPerJob ?? 2;
@@ -790,6 +927,44 @@ async function runProductPlanBody(
   const discover = deps.discover ?? defaultDiscovery;
   const useCache = input.useCache ?? Boolean(input.outDir);
   const cacheDir = input.outDir ? productPlanCacheDir(input.outDir) : "";
+  if (input.expand) {
+    const intents = jobs.filter((job) => job.proofKind === "intent");
+    const digest = expandDigest(intents);
+    const expandFn =
+      deps.expand ??
+      ((rows: ProductJob[]) =>
+        expandProductPlanIntentsWithCli(
+          rows,
+          input.decisionDir ?? input.outDir ?? path.join(process.cwd(), "data", "results"),
+          Boolean(input.forceExpand)
+        ));
+    let fills: Record<string, ExpandFill> | null = null;
+    if (useCache && !input.forceExpand && intents.length) {
+      fills = await readExpandCache(cacheDir, digest);
+      if (fills) noteProductPlan("expand", "cache hit");
+    }
+    if (fills) {
+      jobs = applyIntentFills(jobs, fills);
+    } else if (intents.length) {
+      noteProductPlan("expand", `LLM seeds for ${intents.length} documented jobs`);
+      try {
+        const next = await expandFn(jobs);
+        const nextFills: Record<string, ExpandFill> = {};
+        for (const job of next) {
+          if (job.proofKind !== "intent") continue;
+          nextFills[job.id] = {
+            seeds: job.seeds ?? [],
+            notThis: job.notThis ?? [],
+          };
+        }
+        jobs = next;
+        if (useCache) await writeExpandCache(cacheDir, digest, nextFills);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        noteProductPlan("expand", message, { level: "warn" });
+      }
+    }
+  }
   noteProductPlan(
     "jobs",
     jobs.map((job) => job.label).join(", ")
@@ -798,6 +973,13 @@ async function runProductPlanBody(
   const discoveries: ProductJobDiscovery[] = await Promise.all(
     jobs.map(async (job) => {
       const seeds = productJobSeeds(job);
+      if (!seeds.length) {
+        noteProductPlan("discover", "expand left blank", {
+          jobId: job.id,
+          label: job.label,
+        });
+        return { job, phrases: [], landscape: [] };
+      }
       if (useCache && !input.forceDiscover) {
         const cached = await readDiscoveryCache(
           cacheDir,

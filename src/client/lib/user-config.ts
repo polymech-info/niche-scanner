@@ -9,6 +9,7 @@ export interface UserConfig {
   scriptDescriptions?: Record<string, string>;
   expandedScriptGroups?: string[];
   hiddenScripts?: string[];
+  planFavourites?: string[];
 }
 
 const LEGACY_KEYS = [
@@ -20,10 +21,19 @@ const LEGACY_KEYS = [
   "runny-theme",
 ] as const;
 
+async function readConfigResponse(res: Response): Promise<UserConfig> {
+  const text = await res.text();
+  if (!res.ok) throw new Error(`/api/user-config → ${res.status}`);
+  try {
+    return JSON.parse(text) as UserConfig;
+  } catch {
+    throw new Error("/api/user-config returned a page instead of JSON");
+  }
+}
+
 export async function fetchUserConfig(): Promise<UserConfig> {
   const res = await fetch("/api/user-config");
-  if (!res.ok) throw new Error(`/api/user-config → ${res.status}`);
-  return res.json();
+  return readConfigResponse(res);
 }
 
 export async function saveUserConfig(config: UserConfig): Promise<UserConfig> {
@@ -32,8 +42,7 @@ export async function saveUserConfig(config: UserConfig): Promise<UserConfig> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(config),
   });
-  if (!res.ok) throw new Error(`/api/user-config → ${res.status}`);
-  return res.json();
+  return readConfigResponse(res);
 }
 
 /** One-time migrate from browser localStorage into the file-backed config. */
@@ -61,6 +70,7 @@ export function migrateLocalStorageUserConfig(
     scriptDescriptions: { ...(fileConfig.scriptDescriptions ?? {}) },
     expandedScriptGroups: [...(fileConfig.expandedScriptGroups ?? [])],
     hiddenScripts: [...(fileConfig.hiddenScripts ?? [])],
+    planFavourites: [...(fileConfig.planFavourites ?? [])],
   };
 
   if (!hasFileFavs) {
@@ -161,6 +171,7 @@ export function buildUserConfigSnapshot(input: {
   scriptDescriptions: Record<string, string>;
   expandedScriptGroups: string[];
   hiddenScripts: string[];
+  planFavourites: string[];
 }): UserConfig {
   return {
     version: 1,
@@ -171,5 +182,6 @@ export function buildUserConfigSnapshot(input: {
     scriptDescriptions: input.scriptDescriptions,
     expandedScriptGroups: input.expandedScriptGroups,
     hiddenScripts: input.hiddenScripts,
+    planFavourites: input.planFavourites,
   };
 }

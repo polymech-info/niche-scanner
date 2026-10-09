@@ -116,6 +116,40 @@ const snapshot = compileCapabilitySnapshot({
   ],
 });
 
+test("compile keeps documented feature jobs as sections", () => {
+  const compiled = compileCapabilitySnapshot({
+    generatedAt: "2026-01-01T00:00:00.000Z",
+    commands: { commands: [] },
+    xblox: { blocks: [] },
+    documents: [
+      {
+        id: "feature-video",
+        label: "Tanit Video",
+        description: "Record the screen, then play the file.",
+        source: "feature-video.md",
+        sections: [
+          {
+            id: "a-walkthrough",
+            label: "A walkthrough",
+            summary: "Pick the monitor or the window.",
+            command: "tanit-cli video record --input screen:0",
+          },
+          {
+            id: "a-short",
+            label: "A short",
+            summary: "Portrait canvas that follows the cursor.",
+          },
+        ],
+      },
+    ],
+  });
+  const node = compiled.capabilities.find(
+    (row) => row.id === "documentation:feature-video"
+  );
+  assert.equal(node?.sections?.length, 2);
+  assert.equal(node?.sections?.[0]?.command, "tanit-cli video record --input screen:0");
+});
+
 test("normalizes and trims introspection metadata", () => {
   assert.equal(snapshot.schemaVersion, 1);
   assert.ok(snapshot.capabilities.some((node) => node.id === "command:resize"));

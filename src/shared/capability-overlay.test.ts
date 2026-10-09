@@ -7,7 +7,7 @@ import {
   parseCustomCapability,
 } from "./capability-overlay.js";
 import { compileCapabilitySnapshot, resolveCapability } from "./capabilities.js";
-import { harvestProductJobs } from "./product-plan.js";
+import { harvestProductJobs, isCustomProductJob } from "./product-plan.js";
 import { parseSettings } from "./config.js";
 
 const snapshot = compileCapabilitySnapshot({
@@ -84,6 +84,9 @@ test("disabled and custom capabilities change harvest and matching", () => {
   const jobs = harvestProductJobs(active);
   assert.ok(!jobs.some((job) => job.id.includes("feature-markdown")));
   assert.ok(jobs.some((job) => job.id === "job:custom:pdf-stamp"));
+  assert.ok(
+    jobs.some((job) => job.id === "job:custom:pdf-stamp" && isCustomProductJob(job))
+  );
   const match = resolveCapability("how to stamp a pdf overlay", active, null);
   assert.equal(match.nodeIds[0], "custom:pdf-stamp");
   const ignored = resolveCapability(
@@ -92,4 +95,73 @@ test("disabled and custom capabilities change harvest and matching", () => {
     null
   );
   assert.notEqual(ignored.fit, "direct");
+});
+
+test("harvests overlay custom caps that are not documentation or command", () => {
+  const custom = parseCustomCapability({
+    label: "Fast player",
+    kind: "block",
+    terms: "player, video",
+  });
+  assert.ok(custom);
+  const active = activeCapabilitySnapshot(snapshot, {
+    disabled: [],
+    disabledWorkflows: [],
+    custom: [custom],
+  });
+  const jobs = harvestProductJobs(active);
+  const job = jobs.find((row) => row.id === "job:custom:fast-player");
+  assert.ok(job);
+  assert.equal(job?.proofKind, "documentation");
+  assert.ok(job && isCustomProductJob(job));
+});
+
+test("overlay can override compiled feature description and terms", () => {
+  const applied = applyCapabilityOverlay(snapshot, {
+    disabled: [],
+    disabledWorkflows: [],
+    custom: [],
+    overrides: {
+      "documentation:feature-markdown": {
+        description: "Read notes as a page, not a raw file.",
+        terms: ["notes", "preview"],
+      },
+    },
+  });
+  const doc = applied.capabilities.find(
+    (row) => row.id === "documentation:feature-markdown"
+  );
+  assert.equal(doc?.description, "Read notes as a page, not a raw file.");
+  assert.deepEqual(doc?.terms, ["notes", "preview"]);
+  const parsed = parseCapabilityOverlay({
+    overrides: {
+      "documentation:feature-markdown": {
+        description: "Pinned copy",
+        terms: "markdown, notes",
+      },
+    },
+  });
+  assert.equal(
+    parsed.overrides?.["documentation:feature-markdown"]?.description,
+    "Pinned copy"
+  );
+  assert.deepEqual(parsed.overrides?.["documentation:feature-markdown"]?.terms, [
+    "markdown",
+    "notes",
+  ]);
+  const jobs = harvestProductJobs(
+    activeCapabilitySnapshot(snapshot, {
+      disabled: [],
+      disabledWorkflows: [],
+      custom: [],
+      overrides: {
+        "documentation:feature-markdown": { terms: ["notes", "preview"] },
+      },
+    })
+  );
+  assert.ok(
+    jobs
+      .find((job) => job.id === "job:documentation:feature-markdown")
+      ?.terms.includes("notes")
+  );
 });

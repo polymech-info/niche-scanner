@@ -46,6 +46,7 @@ function parseInput(body: Record<string, unknown>): ProductPlanInput {
         ? body.maxJobs
         : undefined,
     serpCallsPerJob: serp === 4 ? 4 : 2,
+    expand: Boolean(body.expand),
     decide: Boolean(body.decide),
     qualify: Boolean(body.qualify),
     enrich: Boolean(body.enrich),
@@ -55,6 +56,7 @@ function parseInput(body: Record<string, unknown>): ProductPlanInput {
         : parseEnricherSpecs("meta"),
     useCache: body.useCache !== false && body.noCache !== true,
     forceDiscover: force || Boolean(body.forceDiscover),
+    forceExpand: force || Boolean(body.forceExpand),
     forceDecide: force || Boolean(body.forceDecide),
     forceQualify: force || Boolean(body.forceQualify),
     forceEnrich: force || Boolean(body.forceEnrich),

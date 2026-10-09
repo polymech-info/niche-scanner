@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "groupingEnabled": true,
+  "sidebarWidth": 320,
+  "favouriteGroups": [
+    {
+      "id": "default",
+      "name": "Favourites",
+      "scriptIds": [],
+      "mutedScriptIds": []
+    }
+  ],
+  "scriptDescriptions": {},
+  "expandedScriptGroups": [],
+  "hiddenScripts": [],
+  "planFavourites": [
+    "job:custom:markdown-viewer-editor-ex"
+  ]
+}

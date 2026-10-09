@@ -1,4 +1,10 @@
-import { useMemo, useState, type KeyboardEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
 export type CatalogItem = {
@@ -34,6 +40,62 @@ function activate(event: KeyboardEvent, fn: () => void) {
   }
 }
 
+type TreeFold = {
+  opened: Record<string, boolean>;
+  remembered: Record<string, boolean>;
+};
+
+function treeFoldKey(treeId: string) {
+  return `phrases.tree.fold.v2.${treeId}`;
+}
+
+function asFlagMap(value: unknown): Record<string, boolean> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const out: Record<string, boolean> = {};
+  for (const [id, flag] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof flag === "boolean") out[id] = flag;
+  }
+  return out;
+}
+
+function readTreeFold(treeId: string): TreeFold {
+  try {
+    const raw = localStorage.getItem(treeFoldKey(treeId));
+    if (!raw) return { opened: {}, remembered: {} };
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return { opened: {}, remembered: {} };
+    }
+    const row = parsed as { opened?: unknown; remembered?: unknown };
+    const opened = asFlagMap(row.opened);
+    return {
+      opened,
+      remembered: "remembered" in row ? asFlagMap(row.remembered) : opened,
+    };
+  } catch {
+    return { opened: {}, remembered: {} };
+  }
+}
+
+function writeTreeFold(treeId: string, fold: TreeFold) {
+  try {
+    localStorage.setItem(treeFoldKey(treeId), JSON.stringify(fold));
+  } catch {
+    /* quota */
+  }
+}
+
+function pruneFlags(
+  flags: Record<string, boolean>,
+  ids: Set<string>,
+): Record<string, boolean> {
+  const next: Record<string, boolean> = {};
+  for (const [id, flag] of Object.entries(flags)) {
+    if (ids.has(id)) next[id] = flag;
+  }
+  return next;
+}
+
 export function CatalogWorkbench({
   groups,
   selectedId,
@@ -46,6 +108,7 @@ export function CatalogWorkbench({
   toolbar,
   treeMeta,
   treeToolbar,
+  treeId,
   detail,
 }: {
   groups: CatalogGroup[];
@@ -59,11 +122,13 @@ export function CatalogWorkbench({
   toolbar?: ReactNode;
   treeMeta?: ReactNode;
   treeToolbar?: ReactNode;
+  treeId: string;
   detail: ReactNode;
 }) {
   const [query, setQuery] = useState("");
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [fold, setFold] = useState<TreeFold>(() => readTreeFold(treeId));
   const needle = query.trim().toLowerCase();
+  const opened = fold.opened;
 
   const visible = useMemo(() => {
     return groups
@@ -83,10 +148,74 @@ export function CatalogWorkbench({
       );
   }, [groups, needle]);
 
+  useEffect(() => {
+    writeTreeFold(treeId, fold);
+  }, [fold, treeId]);
+
+  useEffect(() => {
+    if (!groups.length) return;
+    const ids = new Set(groups.map((group) => group.id));
+    setFold((current) => {
+      const openedNext = pruneFlags(current.opened, ids);
+      const rememberedNext = pruneFlags(current.remembered, ids);
+      if (
+        Object.keys(openedNext).length === Object.keys(current.opened).length &&
+        Object.keys(rememberedNext).length === Object.keys(current.remembered).length
+      ) {
+        return current;
+      }
+      return { opened: openedNext, remembered: rememberedNext };
+    });
+  }, [groups]);
+
   const isOpen = (id: string) => {
     if (needle) return true;
-    return collapsed[id] !== true;
+    return opened[id] === true;
   };
+
+  function setFlag(
+    flags: Record<string, boolean>,
+    id: string,
+    open: boolean,
+  ): Record<string, boolean> {
+    const next = { ...flags };
+    if (open) next[id] = true;
+    else delete next[id];
+    return next;
+  }
+
+  function setGroupOpen(id: string, open: boolean) {
+    setFold((current) => ({
+      opened: setFlag(current.opened, id, open),
+      remembered: setFlag(current.remembered, id, open),
+    }));
+  }
+
+  function expandAll() {
+    const allClosed = groups.every((group) => opened[group.id] !== true);
+    setFold((current) => {
+      const rememberedOpens = groups.some(
+        (group) => current.remembered[group.id] === true,
+      );
+      if (allClosed && rememberedOpens) {
+        return {
+          opened: { ...current.remembered },
+          remembered: current.remembered,
+        };
+      }
+      return {
+        opened: Object.fromEntries(groups.map((group) => [group.id, true])),
+        remembered: current.remembered,
+      };
+    });
+  }
+
+  function collapseAll() {
+    setFold((current) => ({
+      opened: {},
+      remembered: current.remembered,
+    }));
+  }
 
   return (
     <div className="catalog-panel">
@@ -129,10 +258,7 @@ export function CatalogWorkbench({
                           onClick={(event) => {
                             event.stopPropagation();
                             if (!needle) {
-                              setCollapsed((current) => ({
-                                ...current,
-                                [group.id]: open,
-                              }));
+                              setGroupOpen(group.id, !open);
                             }
                           }}
                         >
@@ -221,8 +347,30 @@ export function CatalogWorkbench({
               })
             )}
           </div>
-          {treeToolbar ? (
-            <div className="catalog-tree-tools">{treeToolbar}</div>
+          {groups.length || treeToolbar ? (
+            <div className="catalog-tree-actions">
+              <div className="catalog-tree-fold">
+                <button
+                  type="button"
+                  className="btn btn-quiet"
+                  disabled={!groups.length}
+                  onClick={expandAll}
+                >
+                  Expand all
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-quiet"
+                  disabled={!groups.length}
+                  onClick={collapseAll}
+                >
+                  Collapse all
+                </button>
+              </div>
+              {treeToolbar ? (
+                <div className="catalog-tree-tools">{treeToolbar}</div>
+              ) : null}
+            </div>
           ) : null}
         </div>
         <div className="catalog-detail">{detail}</div>
@@ -281,11 +429,13 @@ export function CatalogFound({
   label,
   count,
   empty,
+  actions,
   children,
 }: {
   label: string;
   count?: number;
   empty?: string;
+  actions?: ReactNode;
   children?: ReactNode;
 }) {
   const has = children != null && children !== false;
@@ -294,6 +444,7 @@ export function CatalogFound({
       <div className="catalog-found-label">
         {label}
         {typeof count === "number" ? <span>{count}</span> : null}
+        {actions ? <div className="catalog-found-actions">{actions}</div> : null}
       </div>
       {has ? children : empty ? (
         <p className="catalog-empty">{empty}</p>

@@ -8,8 +8,10 @@ import type {
 } from "../../shared/capabilities";
 import { isCustomCapabilityId } from "../../shared/capability-overlay";
 import {
+  deleteCapabilityOverride,
   deleteCustomCapability,
   refreshCapabilities,
+  saveCapabilityOverride,
   saveCustomCapability,
   setCapabilityAvailability,
   setCapabilityEnabled,
@@ -146,6 +148,33 @@ export function CapabilitiesPanel() {
     }
   };
 
+  const saveOverride = async (
+    id: string,
+    patch: { description: string; terms: string }
+  ) => {
+    setBusy(`override:${id}`);
+    setError(null);
+    try {
+      cache(await saveCapabilityOverride(id, patch));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const resetOverride = async (id: string) => {
+    setBusy(`override:${id}`);
+    setError(null);
+    try {
+      cache(await deleteCapabilityOverride(id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const editCustom = (row: ProductCapability) => {
     setForm({
       id: row.id,
@@ -182,7 +211,11 @@ export function CapabilitiesPanel() {
       label: row.label,
       enabled,
       muted: !enabled,
-      badge: isCustom(row) ? "custom" : undefined,
+      badge: isCustom(row)
+        ? "custom"
+        : overlay?.overrides?.[row.id]
+          ? "override"
+          : undefined,
       searchText: [row.id, row.kind, row.source, row.description, ...(row.terms ?? [])].join(
         " "
       ),
@@ -279,6 +312,7 @@ export function CapabilitiesPanel() {
     features,
     form.id,
     form.label,
+    overlay,
     overlay?.custom.length,
     rest,
     scope,
@@ -338,6 +372,7 @@ export function CapabilitiesPanel() {
 
       <div className="flex-1 min-h-0 px-5 pb-5 md:px-8 flex flex-col">
         <CatalogWorkbench
+          treeId="capabilities"
           groups={groups}
           selectedId={selectedId}
           onSelect={setSelectedId}
@@ -427,7 +462,19 @@ export function CapabilitiesPanel() {
             ) : selectedCap ? (
               <CapabilityDetail
                 row={selectedCap}
+                overridden={Boolean(overlay?.overrides?.[selectedCap.id])}
+                busy={busy === `override:${selectedCap.id}`}
                 onToggle={toggleCap}
+                onSaveOverride={
+                  selectedCap.kind === "documentation" && !isCustom(selectedCap)
+                    ? (patch) => void saveOverride(selectedCap.id, patch)
+                    : undefined
+                }
+                onResetOverride={
+                  overlay?.overrides?.[selectedCap.id]
+                    ? () => void resetOverride(selectedCap.id)
+                    : undefined
+                }
                 onEdit={isCustom(selectedCap) ? () => editCustom(selectedCap) : undefined}
                 onDelete={
                   isCustom(selectedCap)
@@ -462,12 +509,20 @@ export function CapabilitiesPanel() {
 
 function CapabilityDetail({
   row,
+  overridden,
+  busy,
   onToggle,
+  onSaveOverride,
+  onResetOverride,
   onEdit,
   onDelete,
 }: {
   row: ProductCapability;
+  overridden?: boolean;
+  busy?: boolean;
   onToggle: (id: string, enabled: boolean) => void;
+  onSaveOverride?: (patch: { description: string; terms: string }) => void;
+  onResetOverride?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
 }) {
@@ -484,6 +539,10 @@ function CapabilityDetail({
         {isCustom(row) ? (
           <span className="pill" data-on="true">
             custom
+          </span>
+        ) : overridden ? (
+          <span className="pill" data-on="true">
+            override
           </span>
         ) : null}
         {onEdit ? (
@@ -510,7 +569,15 @@ function CapabilityDetail({
           {enabled ? "On" : "Off"}
         </button>
       </CatalogDetailHead>
-      {row.description ? (
+      {onSaveOverride ? (
+        <FeatureTextOverride
+          row={row}
+          busy={Boolean(busy)}
+          overridden={Boolean(overridden)}
+          onSave={onSaveOverride}
+          onReset={onResetOverride}
+        />
+      ) : row.description ? (
         <p className="m-0 text-sm whitespace-pre-wrap max-w-[62ch]">{row.description}</p>
       ) : (
         <p className="catalog-empty" style={{ padding: 0 }}>
@@ -525,7 +592,8 @@ function CapabilityDetail({
           },
           { label: "Kind", value: row.kind },
           { label: "Source", value: <code className="text-xs break-all">{row.source}</code> },
-          row.terms.length > 0 && { label: "Terms", value: row.terms.join(", ") },
+          !onSaveOverride &&
+            row.terms.length > 0 && { label: "Terms", value: row.terms.join(", ") },
           row.inputs.length > 0 && { label: "Inputs", value: row.inputs.join(", ") },
           row.outputs.length > 0 && { label: "Outputs", value: row.outputs.join(", ") },
         ]}
@@ -603,6 +671,71 @@ function WorkflowDetail({
           </ul>
         ) : null}
       </CatalogFound>
+    </div>
+  );
+}
+
+function FeatureTextOverride({
+  row,
+  busy,
+  overridden,
+  onSave,
+  onReset,
+}: {
+  row: ProductCapability;
+  busy: boolean;
+  overridden: boolean;
+  onSave: (patch: { description: string; terms: string }) => void;
+  onReset?: () => void;
+}) {
+  const capturedTerms = row.terms.join(", ");
+  const [description, setDescription] = useState(row.description);
+  const [terms, setTerms] = useState(capturedTerms);
+  useEffect(() => {
+    setDescription(row.description);
+    setTerms(capturedTerms);
+  }, [capturedTerms, row.description, row.id]);
+  const dirty = description !== row.description || terms !== capturedTerms;
+  return (
+    <div className="grid gap-3">
+      <label className="grid gap-1.5">
+        <span className="text-xs font-medium">Description</span>
+        <textarea
+          className="field min-h-[7rem] resize-y"
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          placeholder="What this feature does, in search-facing language"
+        />
+      </label>
+      <label className="grid gap-1.5">
+        <span className="text-xs font-medium">Terms</span>
+        <input
+          className="field"
+          value={terms}
+          onChange={(event) => setTerms(event.target.value)}
+          placeholder="video, player, playback"
+        />
+      </label>
+      <div className="flex justify-end gap-2">
+        {overridden ? (
+          <button
+            type="button"
+            className="btn btn-quiet mr-auto"
+            disabled={busy}
+            onClick={() => onReset?.()}
+          >
+            Reset
+          </button>
+        ) : null}
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={busy || !dirty}
+          onClick={() => onSave({ description, terms })}
+        >
+          {busy ? "Saving…" : "Save override"}
+        </button>
+      </div>
     </div>
   );
 }

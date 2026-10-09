@@ -22,6 +22,8 @@ export interface UserConfig {
   expandedScriptGroups?: string[];
   /** Hidden script ids (`packageName:scriptName`) removed from the sidebar. */
   hiddenScripts?: string[];
+  /** Product-plan job ids marked favourite. */
+  planFavourites?: string[];
 }
 
 const DEFAULT_CONFIG: UserConfig = {
@@ -32,6 +34,7 @@ const DEFAULT_CONFIG: UserConfig = {
   scriptDescriptions: {},
   expandedScriptGroups: [],
   hiddenScripts: [],
+  planFavourites: [],
 };
 
 export function userConfigPath(targetDir: string): string {
@@ -54,6 +57,7 @@ export function readUserConfig(targetDir: string): UserConfig {
 export function writeUserConfig(targetDir: string, config: UserConfig): UserConfig {
   const normalized = normalizeUserConfig(config);
   const filePath = userConfigPath(targetDir);
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, `${JSON.stringify(normalized, null, 2)}\n`, "utf-8");
   return normalized;
 }
@@ -114,6 +118,16 @@ function normalizeUserConfig(raw: Partial<UserConfig> | null | undefined): UserC
       )
     : [];
 
+  const planFavourites = Array.isArray(raw?.planFavourites)
+    ? [
+        ...new Set(
+          raw!.planFavourites!.filter(
+            (id): id is string => typeof id === "string" && id.length > 0
+          )
+        ),
+      ]
+    : [];
+
   return {
     version: 1,
     theme,
@@ -126,5 +140,6 @@ function normalizeUserConfig(raw: Partial<UserConfig> | null | undefined): UserC
     scriptDescriptions: descriptions,
     expandedScriptGroups,
     hiddenScripts,
+    planFavourites,
   };
 }

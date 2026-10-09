@@ -12,6 +12,7 @@ import type {
 export interface ProductPlanCacheFlags {
   forceDiscover?: boolean;
   forceDecide?: boolean;
+  forceExpand?: boolean;
   forceQualify?: boolean;
   forceEnrich?: boolean;
 }
@@ -33,6 +34,17 @@ export interface DecideCacheEntry {
   digest: string;
   cachedAt: string;
   decisions: Record<string, ProductPlanDecision>;
+}
+
+export interface ExpandFill {
+  seeds: string[];
+  notThis: string[];
+}
+
+export interface ExpandCacheEntry {
+  digest: string;
+  cachedAt: string;
+  fills: Record<string, ExpandFill>;
 }
 
 export const QUALIFY_CACHE_VERSION = 2;
@@ -74,6 +86,10 @@ function decidePath(cacheDir: string): string {
   return path.join(cacheDir, "decide.json");
 }
 
+function expandPath(cacheDir: string): string {
+  return path.join(cacheDir, "expand.json");
+}
+
 function qualifyPath(cacheDir: string, jobId: string): string {
   return path.join(cacheDir, "qualify", `${safeName(jobId)}.json`);
 }
@@ -105,6 +121,11 @@ export async function deleteJobStageCache(
 export async function deleteDecideCache(cacheDir: string): Promise<void> {
   if (!cacheDir) return;
   await unlinkQuiet(decidePath(cacheDir));
+}
+
+export async function deleteExpandCache(cacheDir: string): Promise<void> {
+  if (!cacheDir) return;
+  await unlinkQuiet(expandPath(cacheDir));
 }
 
 export async function deletePlanCache(cacheDir: string): Promise<void> {
@@ -144,6 +165,16 @@ function localeEquals(a: Locale, b: Locale): boolean {
   return (
     a.gl === b.gl && a.hl === b.hl && a.googleDomain === b.googleDomain
   );
+}
+
+export function expandDigest(jobs: ProductJob[]): string {
+  return jobs
+    .map(
+      (job) =>
+        `${job.id}:${job.summary ?? ""}:${job.command ?? ""}:${(job.seeds ?? []).join("|")}`
+    )
+    .sort()
+    .join(";");
 }
 
 export function discoveryDigest(
@@ -217,6 +248,33 @@ export async function readDecideCache(
   } catch {
     return null;
   }
+}
+
+export async function readExpandCache(
+  cacheDir: string,
+  digest: string
+): Promise<Record<string, ExpandFill> | null> {
+  try {
+    const raw = JSON.parse(await fs.readFile(expandPath(cacheDir), "utf8")) as ExpandCacheEntry;
+    if (raw.digest !== digest) return null;
+    return raw.fills;
+  } catch {
+    return null;
+  }
+}
+
+export async function writeExpandCache(
+  cacheDir: string,
+  digest: string,
+  fills: Record<string, ExpandFill>
+): Promise<void> {
+  await fs.mkdir(cacheDir, { recursive: true });
+  const entry: ExpandCacheEntry = {
+    digest,
+    cachedAt: new Date().toISOString(),
+    fills,
+  };
+  await fs.writeFile(expandPath(cacheDir), `${JSON.stringify(entry, null, 2)}\n`, "utf8");
 }
 
 export async function writeDecideCache(

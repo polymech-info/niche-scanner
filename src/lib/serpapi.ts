@@ -64,6 +64,7 @@ export interface SerpResponse {
     link?: string;
     snippet?: string;
     source?: string;
+    date?: string;
   }>;
   answer_box?: Record<string, unknown>;
   ai_overview?: Record<string, unknown>;

@@ -10,7 +10,7 @@
   (CLI: <code>phrases</code>)
 </p>
 
-GUI and CLI share the same store: `data/searches/<id>.json`.
+GUI and CLI share the same store: `data/searches/<id>.json`. Schemas: [docs/data-model.md](docs/data-model.md). Pipelines: [docs/data-flow.md](docs/data-flow.md).
 
 ## Quick start
 
@@ -35,7 +35,7 @@ node dist/cli.js serve
 ## GUI
 
 - **Opportunity** (`/`) — disposable topic explorer; promote phrases into a saved search.
-- **Product plan** (`/plan`) — grouped job tree (features, workflows, commands). Select a feature for its detail and found searches / ranking / social. Check jobs, toggle Decide / Qualify / Enrich next to **Run**. Stage caches live under `data/results/product-plan/.cache`.
+- **Product plan** (`/plan`) — grouped job tree (features, workflows, commands). Feature pages with several H2 jobs split into search intents (the verified path, not the brand title). Select a job for its detail and found searches / ranking / social. Check jobs, toggle Expand / Decide / Qualify / Enrich next to **Run**. Stage caches live under `data/results/product-plan/.cache`.
 - **Capabilities** (`/capabilities`) — the same tree pattern. Enable or disable harvested evidence, add custom jobs, recapture Tanit, recompile feature pages. Overlay lives in `data/config.json` so refreshes keep your edits.
 
 ### Grounded opportunity dashboard
@@ -60,21 +60,21 @@ Qualify and enrich cost extra SerpAPI calls. Generate does not call SerpAPI. It 
 
 ## Product master plan
 
-`runProductPlan` inverts the seed workflow: harvest jobs from the snapshot, search each with a bounded budget, dedupe globally, then opt into decide / qualify / enrich.
+`runProductPlan` inverts the seed workflow: harvest jobs from the snapshot, split documented feature pages into search intents, search each with a bounded budget, dedupe globally, then opt into expand / decide / qualify / enrich. Expand is an LLM fill of those intent seeds (off by default; headings still become `how to …` queries without it).
 
 ```sh
 phrases product-plan \
   --jobs job:workflow:video-recorder,job:documentation:feature-markdown \
   --serp-budget 2
 
-phrases product-plan --decide --qualify
+phrases product-plan --expand --decide --qualify
 phrases product-plan --no-qualify --enrich
 phrases product-plan --render-only
 phrases product-plan --clear
 phrases product-plan --remove-jobs job:documentation:feature-markdown
 ```
 
-`--no-cache` disables `<out>/.cache`. `--force` / `--force-discover` / `--force-decide` / `--force-qualify` / `--force-enrich` invalidate stages.
+`--no-cache` disables `<out>/.cache`. `--force` / `--force-discover` / `--force-expand` / `--force-decide` / `--force-qualify` / `--force-enrich` invalidate stages.
 
 ## Product grounding
 
@@ -108,6 +108,8 @@ npx tsx src/cli.ts serve --port 3780
 | `--gl` `--hl` `--domain` | `us` `en` `google.com` | locale |
 
 ## Data
+
+What is stored, how records relate, mermaid ER: [docs/data-model.md](docs/data-model.md). How grounding, opportunity, search, and product plan move, mermaid sequences: [docs/data-flow.md](docs/data-flow.md).
 
 | Path | What |
 | --- | --- |

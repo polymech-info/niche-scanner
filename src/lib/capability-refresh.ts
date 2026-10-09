@@ -6,6 +6,7 @@ import fg from "fast-glob";
 import { parse as parseYaml } from "yaml";
 import {
   compileCapabilitySnapshot,
+  type CapabilitySection,
   type ProductCapabilitySnapshot,
   type RawCapabilityDocument,
   type RawWorkflow,
@@ -64,7 +65,7 @@ export async function captureCapabilities(): Promise<CaptureResult> {
 }
 
 const BOILERPLATE_HEADING =
-  /^(who it'?s for|who this is for|related docs|references|illustration prompts|learn more)$/i;
+  /^(who it'?s for|who this is for|related docs|references|illustration prompts|learn more|app,\s*cli,\s*xblox)$/i;
 
 interface FeatureFrontmatter {
   title?: string;
@@ -139,6 +140,36 @@ function slug(value: string): string {
     .replace(/^-|-$/g, "");
 }
 
+function firstFence(body: string): string | undefined {
+  const match = /```[^\n]*\n([\s\S]*?)```/.exec(body);
+  const text = match?.[1]?.trim();
+  return text ? text.slice(0, 400) : undefined;
+}
+
+function featureSectionsAsJobs(jobs: FeatureSection[]): CapabilitySection[] {
+  const taken = new Set<string>();
+  const out: CapabilitySection[] = [];
+  for (const section of jobs) {
+    const summary = prose(section.body).slice(0, 400);
+    const command = firstFence(section.body);
+    if (summary.length < 20 && !command) continue;
+    let id = slug(section.label) || "section";
+    if (taken.has(id)) {
+      let n = 2;
+      while (taken.has(`${id}-${n}`)) n += 1;
+      id = `${id}-${n}`;
+    }
+    taken.add(id);
+    out.push({
+      id,
+      label: section.label,
+      summary,
+      ...(command ? { command } : {}),
+    });
+  }
+  return out;
+}
+
 function featureDocument(
   relative: string,
   raw: string
@@ -150,8 +181,9 @@ function featureDocument(
   const label = meta.title || lead?.label || "";
   if (!label) return null;
   const lede = prose(lead?.body ?? "").slice(0, 360);
-  const jobLine = jobs.length
-    ? `Jobs: ${jobs.map((job) => job.label).join("; ")}`
+  const parsed = featureSectionsAsJobs(jobs);
+  const jobLine = parsed.length
+    ? `Jobs: ${parsed.map((job) => job.label).join("; ")}`
     : "";
   const description = [meta.description, meta.tags.join(", "), lede, jobLine]
     .filter(Boolean)
@@ -165,6 +197,7 @@ function featureDocument(
     label,
     description,
     source: relative,
+    ...(parsed.length ? { sections: parsed } : {}),
   };
 }
 

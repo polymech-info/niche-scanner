@@ -6,10 +6,12 @@ import {
 } from "../../lib/capabilities.js";
 import { refreshCapabilities } from "../../lib/capability-refresh.js";
 import {
+  removeCapabilityOverride,
   removeCustomCapability,
   setCapabilityAvailability,
   setCapabilityEnabled,
   setWorkflowEnabled,
+  upsertCapabilityOverride,
   upsertCustomCapability,
 } from "../../lib/app-config.js";
 import {
@@ -93,7 +95,9 @@ function fail(res: import("express").Response, err: unknown) {
   const message = err instanceof Error ? err.message : String(err);
   const missing = /snapshot missing|ENOENT/i.test(message);
   const bad =
-    /empty|needs a label|Not a custom|No custom capability/i.test(message);
+    /empty|needs a label|Not a custom|No custom capability|Override needs/i.test(
+      message
+    );
   const status = missing ? 404 : bad ? 400 : 500;
   log.error({ err: message, status }, "capabilities api fail");
   res.status(status).json({ error: message });
@@ -190,6 +194,24 @@ export function createCapabilitiesRouter(): Router {
   router.patch("/api/capabilities/workflows/:id", async (req, res) => {
     try {
       await setWorkflowEnabled(req.params.id, req.body?.enabled !== false);
+      res.json(await managedGrounding());
+    } catch (err) {
+      fail(res, err);
+    }
+  });
+
+  router.patch("/api/capabilities/:id/override", async (req, res) => {
+    try {
+      await upsertCapabilityOverride(req.params.id, req.body);
+      res.json(await managedGrounding());
+    } catch (err) {
+      fail(res, err);
+    }
+  });
+
+  router.delete("/api/capabilities/:id/override", async (req, res) => {
+    try {
+      await removeCapabilityOverride(req.params.id);
       res.json(await managedGrounding());
     } catch (err) {
       fail(res, err);

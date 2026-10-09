@@ -1,5 +1,13 @@
 import type { SiteMeta } from "./phrases.js";
 
+export function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
 export function normalizeSiteUrl(url: string): string | null {
   try {
     const parsed = new URL(url);

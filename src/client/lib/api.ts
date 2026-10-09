@@ -399,6 +399,31 @@ export async function setWorkflowEnabled(
   return readJson<CapabilityGrounding>(res);
 }
 
+export async function saveCapabilityOverride(
+  id: string,
+  input: { description?: string; terms?: string }
+): Promise<CapabilityGrounding> {
+  const res = await fetch(
+    `${BASE}/api/capabilities/${encodeURIComponent(id)}/override`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    }
+  );
+  return readJson<CapabilityGrounding>(res);
+}
+
+export async function deleteCapabilityOverride(
+  id: string
+): Promise<CapabilityGrounding> {
+  const res = await fetch(
+    `${BASE}/api/capabilities/${encodeURIComponent(id)}/override`,
+    { method: "DELETE" }
+  );
+  return readJson<CapabilityGrounding>(res);
+}
+
 export async function saveCustomCapability(input: {
   id?: string;
   kind?: string;
@@ -464,11 +489,13 @@ export async function runProductPlan(input: {
   jobIds?: string[];
   maxJobs?: number;
   serpCallsPerJob?: 2 | 4;
+  expand?: boolean;
   decide?: boolean;
   qualify?: boolean;
   enrich?: boolean;
   force?: boolean;
   forceDiscover?: boolean;
+  forceExpand?: boolean;
   forceDecide?: boolean;
   forceQualify?: boolean;
   forceEnrich?: boolean;

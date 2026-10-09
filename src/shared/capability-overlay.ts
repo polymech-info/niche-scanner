@@ -22,16 +22,23 @@ function wordList(raw: unknown): string[] {
   return out;
 }
 
+export interface CapabilityTextOverride {
+  description?: string;
+  terms?: string[];
+}
+
 export interface CapabilityOverlay {
   disabled: string[];
   disabledWorkflows: string[];
   custom: ProductCapability[];
+  overrides?: Record<string, CapabilityTextOverride>;
 }
 
 export const EMPTY_CAPABILITY_OVERLAY: CapabilityOverlay = {
   disabled: [],
   disabledWorkflows: [],
   custom: [],
+  overrides: {},
 };
 
 const KINDS = new Set<CapabilityKind>([
@@ -104,6 +111,30 @@ export function parseCustomCapability(
   };
 }
 
+export function parseCapabilityTextOverride(
+  raw: unknown
+): CapabilityTextOverride | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const data = raw as Record<string, unknown>;
+  const out: CapabilityTextOverride = {};
+  if ("description" in data) out.description = String(data.description ?? "");
+  if ("terms" in data) out.terms = wordList(data.terms);
+  if (!("description" in out) && !("terms" in out)) return null;
+  return out;
+}
+
+function parseOverrides(raw: unknown): Record<string, CapabilityTextOverride> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out: Record<string, CapabilityTextOverride> = {};
+  for (const [id, value] of Object.entries(raw as Record<string, unknown>)) {
+    const key = id.trim();
+    if (!key || isCustomCapabilityId(key)) continue;
+    const parsed = parseCapabilityTextOverride(value);
+    if (parsed) out[key] = parsed;
+  }
+  return out;
+}
+
 export function parseCapabilityOverlay(raw: unknown): CapabilityOverlay {
   if (!raw || typeof raw !== "object") return { ...EMPTY_CAPABILITY_OVERLAY };
   const data = raw as Record<string, unknown>;
@@ -120,6 +151,20 @@ export function parseCapabilityOverlay(raw: unknown): CapabilityOverlay {
     disabled: uniqueIds(data.disabled),
     disabledWorkflows: uniqueIds(data.disabledWorkflows),
     custom,
+    overrides: parseOverrides(data.overrides),
+  };
+}
+
+function applyTextOverride(
+  node: ProductCapability,
+  patch: CapabilityTextOverride | undefined
+): ProductCapability {
+  if (!patch) return node;
+  return {
+    ...node,
+    description:
+      "description" in patch ? (patch.description ?? node.description) : node.description,
+    terms: "terms" in patch ? (patch.terms ?? node.terms) : node.terms,
   };
 }
 
@@ -128,12 +173,18 @@ export function applyCapabilityOverlay(
   overlay: CapabilityOverlay
 ): ProductCapabilitySnapshot {
   const disabled = new Set(overlay.disabled);
+  const overrides = overlay.overrides ?? {};
   const compiledIds = new Set(snapshot.capabilities.map((node) => node.id));
   const capabilities = [
-    ...snapshot.capabilities.map((node) => ({
-      ...node,
-      available: node.available !== false && !disabled.has(node.id),
-    })),
+    ...snapshot.capabilities.map((node) =>
+      applyTextOverride(
+        {
+          ...node,
+          available: node.available !== false && !disabled.has(node.id),
+        },
+        overrides[node.id]
+      )
+    ),
     ...overlay.custom
       .filter((node) => !compiledIds.has(node.id))
       .map((node) => ({

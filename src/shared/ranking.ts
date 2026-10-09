@@ -12,6 +12,7 @@ export interface RankingLeaf {
   snippet?: string;
   source?: string;
   position: number | null;
+  date?: string;
   phrases: string[];
 }
 
@@ -75,6 +76,7 @@ interface Draft {
   snippet?: string;
   source?: string;
   position: number | null;
+  date?: string;
   phrases: Set<string>;
 }
 
@@ -99,6 +101,7 @@ function pushOrganic(
       snippet: row.snippet,
       source: row.source,
       position: row.position ?? null,
+      date: row.date,
       phrases: new Set(phrase ? [phrase] : []),
     });
     return;
@@ -107,8 +110,10 @@ function pushOrganic(
   if (row.position != null && (prev.position == null || row.position < prev.position)) {
     prev.position = row.position;
     prev.title = row.title || prev.title;
+    if (row.date) prev.date = row.date;
   }
   if (!prev.snippet && row.snippet) prev.snippet = row.snippet;
+  if (!prev.date && row.date) prev.date = row.date;
 }
 
 export function collectRankingLeaves(
@@ -148,6 +153,7 @@ export function collectRankingLeaves(
       snippet: meta?.description || draft.snippet,
       source: meta?.siteName || draft.source,
       position: draft.position,
+      date: draft.date,
       phrases: [...draft.phrases],
     };
   };

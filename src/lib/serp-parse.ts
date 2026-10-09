@@ -22,6 +22,7 @@ export function parseOrganics(response: SerpResponse): OrganicResult[] {
         link: row.link,
         snippet: row.snippet,
         source: row.source,
+        date: row.date,
       },
     ];
   });

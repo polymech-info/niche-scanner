@@ -54,6 +54,8 @@ export interface OrganicResult {
   link: string;
   snippet?: string;
   source?: string;
+  /** SerpAPI relative or published date, e.g. "2 days ago". */
+  date?: string;
 }
 
 /** Cheap page head — title / description / OG. No body HTML. */

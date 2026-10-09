@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T15:22:59.488Z",
+  "generatedAt": "2026-10-08T22:04:56.535Z",
   "product": "Tanit",
   "sources": {
     "commands": "tanit-cli info commands --json",
@@ -55,12 +55,9 @@
       "dist/shared/xblox/video/video-detect-cls.xblox",
       "dist/shared/xblox/video/video-detect-filter.xblox",
       "dist/shared/xblox/video/video-detect-obb.xblox",
-      "dist/shared/xblox/video/video-detect-pose.xblox",
       "dist/shared/xblox/video/video-detect-record.xblox",
       "dist/shared/xblox/video/video-detect-yolo26-cls.xblox",
       "dist/shared/xblox/video/video-detect-yolo26-obb.xblox",
-      "dist/shared/xblox/video/video-detect-yolo26-pose.xblox",
-      "dist/shared/xblox/video/video-detect-yolo26-seg.xblox",
       "dist/shared/xblox/video/video-detect-yolo26.xblox",
       "dist/shared/xblox/video/video-detect.xblox"
     ],
@@ -16596,7 +16593,29 @@
       "options": [],
       "inputs": [],
       "outputs": [],
-      "source": "releases/web-docs/features/feature-3d.md"
+      "source": "releases/web-docs/features/feature-3d.md",
+      "sections": [
+        {
+          "id": "open-a-model",
+          "label": "Open a model",
+          "summary": "Click the file in the file panel, or drop it on the viewer. Double-click in Explorer also works when Tanit is registered for that type. The native 3D viewer is on by default ( Settings → Appearance ). If the plugin is missing, Tanit falls back to the web 3D preview for the same extensions. While it loads you see a spinner. A file that cannot be read shows an error in the viewer — the file on disk "
+        },
+        {
+          "id": "look-around",
+          "label": "Look around",
+          "summary": "Control What it does :-------- :------------- Middle drag Orbit Ctrl + middle drag Pan Shift + middle drag Zoom Scroll Zoom Fit Frame the whole model Front / Top / Iso Standard views Shaded Solid surfaces Edges Shaded surfaces with outlines Wireframe Edges only Hidden lines Visible edges, hidden ones dashed Perspective Toggle perspective and orthographic Sky Backdrop behind the model. Off until yo"
+        },
+        {
+          "id": "supported-formats",
+          "label": "Supported formats",
+          "summary": "### Meshes and scenes Extension Typical source :---------- :--------------- .stl 3D prints, slicers .obj Mesh export .gltf / .glb glTF scenes .ply Scans, point-sampled meshes .3ds 3D Studio .3mf 3D manufacturing (zip package) .amf Additive manufacturing (XML or zip) .dae Collada .fbx Autodesk FBX (binary or ASCII) .vrml / .wrl VRML ### CAD Extension Typical source :---------- :--------------- .ste"
+        },
+        {
+          "id": "size-and-time",
+          "label": "Size and time",
+          "summary": "A 50 MB STEP file is on screen in a second or two. Very large tessellations take longer. A mesh above 512 MB is refused; AMF and 3DS stop at 64 MB. A FreeCAD document can be much bigger than a single STL because it carries the full part history. The preview is a view of the file, not an editor. Saving still happens in the tool that created the model. ---"
+        }
+      ]
     },
     {
       "id": "documentation:feature-ai",
@@ -16679,7 +16698,64 @@
         "audio",
         "speech"
       ],
-      "source": "releases/web-docs/features/feature-ai.md"
+      "source": "releases/web-docs/features/feature-ai.md",
+      "sections": [
+        {
+          "id": "one-system-many-forms",
+          "label": "One system, many forms",
+          "summary": "The same underlying AI can be shaped very differently for different people and environments. Setting Example :-------- :-------- Everyday work Understand documents, organize files, create media, translate, dictate, and automate repetitive tasks Accessibility and assisted use Voice-first interaction, read-aloud, simplified workflows, guided tasks, communication support Education A controlled learni"
+        },
+        {
+          "id": "ai-you-can-shape-govern-and-repeat",
+          "label": "AI you can shape, govern, and repeat",
+          "summary": "Choose the model for each job. Use local models, approved cloud providers, private endpoints, or mix them by capability. A document can stay on the PC while a different model handles writing. Speech can run locally while another provider handles reasoning. Vision can stay inside a lab or workshop. Give the agent only the tools it needs and decide what it may read, write, run, or send. The same age"
+        },
+        {
+          "id": "what-you-get",
+          "label": "What you get",
+          "summary": "You need What Tanit ships :--------- :----------------- Keep sensitive work local llama.cpp text and VLM (GGUF), whisper.cpp, ONNX media, local speech Use the best model for a job Direct providers, BYOK, OpenAI-compatible endpoints — routed per capability Share expensive hardware One capable PC serves lab or shop seats over the LAN ( llm agent --serve ) Reuse successful setups Presets bundle model"
+        },
+        {
+          "id": "local-and-external-models",
+          "label": "Local and external models",
+          "summary": "Every capability can use a different provider. A private lab can keep images and transcripts on the PC and still call an approved reasoner for writing. A shop can run vision locally and never send frames off-site. Capability Typical local path Typical external path :----------- :------------------- :---------------------- Text / agent llama.cpp GGUF OpenAI, Gemini, OpenRouter, custom OpenAI-compat"
+        },
+        {
+          "id": "ai-can-see-hear-read-and-work-with-the-environment",
+          "label": "AI can see, hear, read and work with the environment",
+          "summary": "The agent already sits next to Tanit’s files, viewer, and automation. You do not assemble a second stack for media or the shop floor. Domain What the agent can use :------- :----------------------- Vision Selected, dropped, pasted, or captured images; local or cloud VLM; OCR Audio Mic or file transcription; TTS; realtime voice with its own provider and prompt Files Current folder and selection; SS"
+        },
+        {
+          "id": "from-conversation-to-repeatable-workflows",
+          "label": "From conversation to repeatable workflows",
+          "summary": "Chat, CLI, and XBlox do not fork separate agents . Defaults come from Settings and the named preset. Block and CLI flags only override. Consent on headless XBlox runs uses the same Win32 permission dialog as the CLI. Surface Use it when :-------- :------------ Chat Interactive work with files, filmstrip, live tool log, stop/cancel, memory CLI Scripts, scheduled tasks, CI, headless --serve , --real"
+        },
+        {
+          "id": "built-to-be-controllable-and-repeatable",
+          "label": "Built to be controllable and repeatable",
+          "summary": "Use only what the task needs — a planner can pick a small tool set before the main model runs, so everyday work is not loaded with every schema. Parallel tool calls are available when the task needs them. Cap iterations per turn. Change the part that needs changing — locate a section, read a window of lines, replace a unique snippet. Not “rewrite the whole handbook.” Tool calls, planner choices, a"
+        },
+        {
+          "id": "security-and-policy-the-assistant-does-not-run-the-pc",
+          "label": "Security and policy — the assistant does not run the PC",
+          "summary": "The assistant proposes actions. Tanit allows, denies, or asks . - Profiles — Light, Strict, or Developer; grant lists you can export with the image. - Consent — native Windows dialog or Chat card, naming action and target. Optional advisory review by a separate security model; a human still decides. - Sandbox — isolate higher-risk tools (AppContainer / LPAC) and limit extra writable folders. - GPO"
+        },
+        {
+          "id": "customize-models-prompts-tools-and-ui",
+          "label": "Customize models, prompts, tools, and UI",
+          "summary": "A preset is the whole agent: models, planner, tools, MCP, skills, consent. Restore it in Chat, pass --preset on the CLI, or select it on an XBlox LLM block. An optional planner picks a focused tool set first. Point it at a fast model. Override its prompt (literal text, @file , or null ); ${builtin} keeps the shipped instructions and lets you extend them. Three signed prompt documents steer behavio"
+        },
+        {
+          "id": "shared-model-host",
+          "label": "Shared model host",
+          "summary": "Classrooms, labs, and small shops often have one machine that can run a strong local model. Tanit serves that host to multiple seats : the same agent runtime exposes an OpenAI-compatible HTTP server. Other PCs keep the managed desktop app and point at the host as a Custom provider. Concurrent turns are gated ( --concurrency ); this is shared serving, not GPU scheduling across processes. Turns on t"
+        },
+        {
+          "id": "a-native-deployable-runtime",
+          "label": "A native, deployable runtime",
+          "summary": "Tanit’s runtime, security gateway, secure storage, and tool execution are a compiled C++ core . Local text and vision run on llama.cpp ; speech recognition on whisper.cpp ; focused media jobs on ONNX Runtime . Presentation uses the OS WebView; native capabilities are reached only through a policy-checked bridge. There is no Node runtime in the product — not an Electron app, and not a Python agent "
+        }
+      ]
     },
     {
       "id": "documentation:feature-audio",
@@ -16763,7 +16839,59 @@
         "speech",
         "text"
       ],
-      "source": "releases/web-docs/features/feature-audio.md"
+      "source": "releases/web-docs/features/feature-audio.md",
+      "sections": [
+        {
+          "id": "the-jobs-they-are-different-pipes",
+          "label": "The jobs (they are different pipes)",
+          "summary": "Job When Path :---- :----- :----- Record You want a file, and maybe a transcript Mic, desktop, or mix → WAV or AAC at listen quality (48 kHz) Transcribe / speak Speech ↔ text Local whisper.cpp or cloud STT; local VibeVoice / MOSS or cloud TTS Voice commands Run a Tanit command by speaking Always-listening command center: wake phrase → one action → idle Talk live Chat is in a voice conversation now"
+        },
+        {
+          "id": "same-audio-three-surfaces",
+          "label": "Same audio, three surfaces",
+          "summary": "Chat settings pick default STT/TTS providers. Devices and the command center live under Settings → Audio & Video . CLI flags and XBlox blocks override those defaults — they do not fork a second stack. Surface Use it when :-------- :------------ App Overlay HUD, ribbon/hotkey, togglevoicecommand , chat realtime CLI tanit-cli audio … and tanit-cli voice … for scripts and scheduled jobs XBlox audioRe"
+        },
+        {
+          "id": "record",
+          "label": "Record",
+          "summary": "Record from the microphone, from desktop / system sound (a call or app), or mix both. Mic and desktop levels are independent. Default capture is 48 kHz stereo — the same quality as video desktop mux. Long WAV takes spill PCM to disk after about 30 seconds in RAM. On Windows, .m4a / .aac encodes AAC during capture instead. Stop with duration, Ctrl+C, the overlay Stop button ( --hud ), or audio reco"
+        },
+        {
+          "id": "speech-to-text-text-to-speech",
+          "label": "Speech to text, text to speech",
+          "summary": "### Transcribe Provider Typical use :--------- :------------ whisper (local whisper.cpp) Offline; CPU or GPU; language auto / en / de / … tanit (proxy) Batch Whisper through Tanit when configured elevenlabs Live streaming captions audio info --models lists discovered local ggml models. Chat STT settings are the default when CLI/XBlox omit --provider . XBlox audioTranscribe accepts a file or a live"
+        },
+        {
+          "id": "voice-commands",
+          "label": "Voice commands",
+          "summary": "This is the always-listening command center . It is not realtime chat ( togglerealtime ). You say a wake phrase (default Tanit ), then a command name. Tanit matches that phrase and runs the command the same way a ribbon button or shortcut would — then goes back to idle. In the app — enable it under Settings → Audio & Video → Voice commands , then start listening with Voice Commands ( togglevoiceco"
+        },
+        {
+          "id": "talk-live-realtime",
+          "label": "Talk live (realtime)",
+          "summary": "The voice agent in chat is a live loop: mic in, model voice out. Capture is 16 kHz mono speech, with echo cancel so playback does not come back as “you.” Background noise on this path is GTCRN — see Background noise. A virtual microphone into Zoom / Teams is not shipped. Start from Chat or tanit --type realtime / --mic start . Distinct from voice commands. ---"
+        },
+        {
+          "id": "background-noise-post-vs-realtime",
+          "label": "Background noise (post vs realtime)",
+          "summary": "Two cleaners, two rates. They are not interchangeable. Post (listen-quality file) Realtime (speech the model hears) :-- :------------------------------ :-------------------------------------- Job Meeting master, voiceover, podcast, video narration Chat uplink; optional voice-command clip Cleaner DeepFilterNet GTCRN (trial) Rate 48 kHz full-band 16 kHz speech (nothing above 8 kHz is invented) When "
+        },
+        {
+          "id": "bluetooth-speakers-and-headsets",
+          "label": "Bluetooth speakers and headsets",
+          "summary": "Point at a paired device by name ( --connect on record / play / tts). Tanit connects, wakes it from standby if needed, and routes audio — instead of digging through Windows sound settings. audio info --playback (and --all for unplugged paired devices) lists render endpoints. ---"
+        },
+        {
+          "id": "privacy",
+          "label": "Privacy",
+          "summary": "Local paths exist end to end: whisper.cpp transcription, VibeVoice / MOSS speech, DeepFilterNet / GTCRN clean. Nothing is sent anywhere for those steps. Cloud STT, TTS, and voice-change are opt-in. ---"
+        },
+        {
+          "id": "cli-and-xblox-same-jobs",
+          "label": "CLI and XBlox (same jobs)",
+          "summary": "Job CLI XBlox :---- :---- :------ Devices audio info audioListDevices Record audio record / stop / status audioRecord , audioRecordStart / Stop Play audio play audioPlay Filter audio filter ( --pf ) audioFilter ( postFilter ) Transcribe audio record --stt / --from-wav audioTranscribe Speak audio tts audioSpeak Scripted speak audio tts-scripted audioTtsScripted Re-voice audio voice-change (CLI; cha"
+        }
+      ]
     },
     {
       "id": "documentation:feature-automation",
@@ -16850,7 +16978,49 @@
         "json",
         "video"
       ],
-      "source": "releases/web-docs/features/feature-automation.md"
+      "source": "releases/web-docs/features/feature-automation.md",
+      "sections": [
+        {
+          "id": "what-it-is-useful-for",
+          "label": "What it is useful for",
+          "summary": "- Turn a repeated sequence of commands into one reviewed flow. - Watch a folder, transform its files, and place the results somewhere else. - Record audio, transcribe it, and append the text to a journal. - Pick text from an application and read it aloud. - Record a window or screen region when a hotkey is pressed. - Fetch data over HTTP, select a few fields, and write or speak the result. - Contr"
+        },
+        {
+          "id": "a-flow-stays-readable",
+          "label": "A flow stays readable",
+          "summary": "The block tree shows the order of work. The wiring view shows where values come from and where they go. Properties remain attached to the block that uses them. Common language blocks include: - if / elseIf / else - switch / case / default - for / while / break - variables, expressions, groups, waits, and lifecycle blocks - stdin, stdout, logging, parsing, and iteration Values can be named with sto"
+        },
+        {
+          "id": "from-input-to-action",
+          "label": "From input to action",
+          "summary": "Area Examples :----- :--------- Flow and data Conditions, loops, variables, JSON selection, iteration Files and commands Read, write, list, hash, copy, move, shell, saved commands Applications Open, activate, click, type, hotkeys, clipboard, UI Automation Network HTTP, SSH, IPC, MQTT, Modbus, MCP Audio Devices, playback, mic/desktop recording, STT, TTS, voice triggers Video Cameras, screens, windo"
+        },
+        {
+          "id": "examples",
+          "label": "Examples",
+          "summary": "### Voice journal Start a microphone recording. When it stops, transcribe locally with Whisper, append a timestamped entry to a journal, paste the text into the focused control, and speak a short confirmation. ### Weather to speaker A short flow can request a weather report, select the useful text, turn it into speech, and play it through a local or Bluetooth speaker: ### Screen recording from a h"
+        },
+        {
+          "id": "run-it-where-it-fits",
+          "label": "Run it where it fits",
+          "summary": "An .xblox document is not tied to the visual builder. Surface Typical use :-------- :------------ Builder Create, inspect, wire, and run blocks interactively CLI Scheduled jobs, batch work, terminals, and tests Commands Ribbon, Explorer, launcher, and Page Builder buttons Markdown Live examples and notebook-like operating instructions MCP Publish a reviewed flow as one tool with a defined interfac"
+        },
+        {
+          "id": "self-documenting-by-design",
+          "label": "Self-documenting by design",
+          "summary": "Blocks describe their own parameters, defaults, input types, constraints, outputs, child lists, platform support, and execution behavior. The runner, property editor, wiring view, and generated documentation read the same manifest. A flow can produce a human-readable outline or diagram without running: This is useful for reviewing a flow, including it in documentation, or showing an operator what "
+        },
+        {
+          "id": "safety-and-managed-use",
+          "label": "Safety and managed use",
+          "summary": "Automation can have side effects. A flow may write files, start processes, send network requests, capture media, or control an application. XBlox exposes those operations as named blocks; it does not make them harmless. The runtime and host provide several controls: - parameter types and constraints are checked before the block handler runs; - shell and command steps use Tanit's validation and con"
+        },
+        {
+          "id": "native-and-integration-friendly",
+          "label": "Native and integration-friendly",
+          "summary": "XBlox can be used as part of another application rather than only through the Tanit UI. The C++ headers expose document and root-list execution, execution options, structured events, outputs, cancellation, and command callbacks. Applications may link the implementation directly or place it behind a DLL API. Web-based hosts use a small host bridge, while previews can use an in-memory runtime. Becau"
+        }
+      ]
     },
     {
       "id": "documentation:feature-chrome",
@@ -16931,7 +17101,44 @@
       "outputs": [
         "video"
       ],
-      "source": "releases/web-docs/features/feature-chrome.md"
+      "source": "releases/web-docs/features/feature-chrome.md",
+      "sections": [
+        {
+          "id": "fast-with-your-voice",
+          "label": "Fast with your voice",
+          "summary": "You do not need to describe everything precisely. Say: “Find the latest discussions about this product and give me the common complaints.” “Compare these three offers with the PDF on my desktop.” “Fill this form from the invoice, but ask before submitting.” “Translate this reply into French and put it here.” “What does this warning mean?” “Make English subtitles for this video.” “Now create a Span"
+        },
+        {
+          "id": "research-without-tab-chaos",
+          "label": "Research without tab chaos",
+          "summary": "Start with a question instead of manually opening twenty tabs. Tanit can search, open results, read pages, follow relevant links, compare sources, and keep the useful parts together. Use it for: - trends and social discussions; - technical research; - product comparisons; - documentation; - travel and local research; - news and current topics; - troubleshooting; - market and competitor research. A"
+        },
+        {
+          "id": "forms-without-copy-and-paste",
+          "label": "Forms without copy and paste",
+          "summary": "Give Tanit the source material and let it do the boring part. A PDF, invoice, spreadsheet, text file, previous result, or local folder can supply the information needed by a web form. Tanit can identify fields, enter values, choose options, move between pages, and stop when something needs your decision. Fast when it is routine. Careful when it matters."
+        },
+        {
+          "id": "any-language-in-place",
+          "label": "Any language, in place",
+          "summary": "Read a page in another language without leaving it. Translate one sentence or the whole useful section. Dictate in your own language and answer in another. Listen to selected text. Compare the translated version with the original. The same works for documents, subtitles, recordings, and videos."
+        },
+        {
+          "id": "from-video-to-subtitles-or-dubbing",
+          "label": "From video to subtitles or dubbing",
+          "summary": "Found a useful video? Go straight from: video → transcript → subtitles or: video → transcript → translation → dubbed version Use local or configured speech, translation, and voice tools without building a separate workflow in another application."
+        },
+        {
+          "id": "point-ask-act",
+          "label": "Point, ask, act",
+          "summary": "Point at the exact thing you mean: - a paragraph; - a form field; - a button; - a chart; - a product image; - a table; - part of a page. Then ask what you want done with it. Read it. Explain it. Translate it. Save it. Compare it. Speak it. Use it in the next step."
+        },
+        {
+          "id": "the-web-is-only-the-starting-point",
+          "label": "The web is only the starting point",
+          "summary": "A task can begin in Chrome and continue anywhere Tanit can work. Search the web, use a local file, process an image, transcribe audio, run a command, create subtitles, talk by voice, or continue as an XBlox workflow. Start with the page. Finish the job."
+        }
+      ]
     },
     {
       "id": "documentation:feature-cms",
@@ -16975,7 +17182,29 @@
       "options": [],
       "inputs": [],
       "outputs": [],
-      "source": "releases/web-docs/features/feature-cms.md"
+      "source": "releases/web-docs/features/feature-cms.md",
+      "sections": [
+        {
+          "id": "reports-and-articles",
+          "label": "Reports and articles",
+          "summary": "Any Markdown file can become a web page. Use it for things like: - project reports and documentation - articles and tutorials - research notes - product pages - meeting summaries - public or private reference material Images used by the document can be uploaded with it, and Tanit automatically rewrites their links so they work on the published page."
+        },
+        {
+          "id": "share-files",
+          "label": "Share files",
+          "summary": "Upload documents, archives, models, media, or other files to your Tanit storage. - PDFs - spreadsheets - CAD files - ZIP archives - videos - source files - web applications - downloadable project material"
+        },
+        {
+          "id": "create-posts",
+          "label": "Create posts",
+          "summary": "Use posts for: - progress updates - finished work - photo collections - prototypes - before-and-after results Posts can be public , listed , or private ."
+        },
+        {
+          "id": "from-the-app-or-command-line",
+          "label": "From the app or command line",
+          "summary": "You can publish directly from Tanit using the sharing actions in the app. The same operations are available through: tanit-cli service … including pages , files , posts , pictures , categories , and search ."
+        }
+      ]
     },
     {
       "id": "documentation:feature-files",
@@ -17056,7 +17285,154 @@
       "outputs": [
         "excel"
       ],
-      "source": "releases/web-docs/features/feature-files.md"
+      "source": "releases/web-docs/features/feature-files.md",
+      "sections": [
+        {
+          "id": "browse-anywhere",
+          "label": "Browse anywhere",
+          "summary": "The address bar shows the current location. Click any part of the path to jump upward, or type a path or remote address directly. Alt+F1 opens the location menu with: - bookmarks - recent locations - Desktop, Downloads, Documents, Pictures, Music, and Videos - local and removable drives - cloud folders already known to Windows - connected phones and cameras - Tanit storage You can also enter locat"
+        },
+        {
+          "id": "ssh-and-sftp",
+          "label": "SSH and SFTP",
+          "summary": "Browse a remote machine much like a local folder. Hosts defined in ~/.ssh/config can use their configured short name: ssh://workshop opens the session's home directory. ssh://workshop/ opens the remote filesystem root. Once you are on a remote host, an absolute path such as /var/log remains on that host rather than being interpreted as a local Windows path. Files can be previewed directly from the"
+        },
+        {
+          "id": "ftp-and-ftps",
+          "label": "FTP and FTPS",
+          "summary": "FTP locations use URL-style addresses: An empty path opens the server's login directory. ftps:// uses TLS. Plain ftp:// is unencrypted. Browsing and transfers work in the same way as SSH. Direct phone-to-FTP transfers are not supported. Copy the file to this PC first, then send it to the FTP server. ---"
+        },
+        {
+          "id": "phones-and-cameras",
+          "label": "Phones and cameras",
+          "summary": "Connected MTP devices appear under Devices in the location menu. Example: Folder names follow the device itself, such as Internal storage , SD card , or DCIM . If two devices have the same display name, Tanit can include a hardware identifier in the address to distinguish them. Photos and other files use the same copy, paste, and drag-and-drop workflow as local files. ---"
+        },
+        {
+          "id": "copy-and-move-files",
+          "label": "Copy and move files",
+          "summary": "Select one or more items and use the familiar shortcuts: Action Shortcut :-- :-- Copy Ctrl+C Cut Ctrl+X Paste Ctrl+V Delete Delete Cancel pending cut Escape Select all Ctrl+A Paste normally targets the current folder. If exactly one folder is selected, Paste goes directly into that folder. Cut files remain visually faded until they are pasted or the operation is cancelled. You can also: - drag fil"
+        },
+        {
+          "id": "copy-or-move-to",
+          "label": "Copy or Move to…",
+          "summary": "The Copy and Move commands in the command palette can prompt for a destination. Enter: - a local path - a remote address - a recent destination - a location selected through the browser If two file panels are open, the other panel is offered automatically. ---"
+        },
+        {
+          "id": "file-conflicts",
+          "label": "File conflicts",
+          "summary": "When a destination already contains the same filename, the transfer pauses and asks what to do: - Overwrite — replace the destination - Skip — keep the existing file - Rename — keep both - If newer — replace only when the source is newer - Cancel — stop the remaining transfer Enable Do this for the remaining files to apply the same decision to the rest of the batch. Transfer progress appears in th"
+        },
+        {
+          "id": "choose-how-files-are-displayed",
+          "label": "Choose how files are displayed",
+          "summary": "Press Alt+number to switch views. View Shortcut Best for :-- :-- :-- Tree Alt+1 Expanding folders in place Brief Alt+2 Maximum density Type Alt+3 General browsing Size Alt+4 Disk cleanup Icons Alt+5 Images and visual files Tiles Alt+6 Larger cards with details Types Alt+7 Grouping files by format Sunburst Alt+8 Visual disk-usage analysis Folders remain above files in every view. The same options a"
+        },
+        {
+          "id": "see-what-is-taking-up-space",
+          "label": "See what is taking up space",
+          "summary": "Press Alt+8 for Sunburst view. The current folder becomes the center of a circular size map. Each surrounding ring represents another directory level. Large files and folders occupy larger slices. Very small items are grouped into Other . You can: - click a file to select it - click a folder to open it - use the mouse wheel to zoom - hover a slice to see its name and size Folder totals appear prog"
+        },
+        {
+          "id": "sorting",
+          "label": "Sorting",
+          "summary": "Use Ctrl+function key to sort. Sort by Shortcut :-- :-- Name Ctrl+F3 Extension Ctrl+F4 Modified time Ctrl+F5 Size Ctrl+F6 Press the same shortcut again to reverse the order. Folders remain above files. Name sorting is natural, so: appears in that order. When folder sizes have already been calculated, Ctrl+F6 sorts directories by their actual contents rather than treating them as zero-byte entries."
+        },
+        {
+          "id": "navigation-shortcuts",
+          "label": "Navigation shortcuts",
+          "summary": "Action Shortcut :-- :-- Back Alt+← Forward Alt+→ Up Backspace Refresh F5 Locations Alt+F1 View options Shift+F1 Open Enter Rename F2 Preview / lightbox Space Search Ctrl+F or F3 Context menu Shift+F10 Glob select Num+ Typing letters jumps to matching names in the current folder. Escape clears the type-ahead search. Standard keyboard selection works as expected: - arrows move focus - Home / End jum"
+        },
+        {
+          "id": "find-files",
+          "label": "Find files",
+          "summary": "Press Ctrl+F or F3 . Tanit supports several kinds of search depending on what you remember. Search Use it when :-- :-- Name You remember part of the filename Content You remember exact text or a pattern inside the file Semantic You remember what the file was about Fingerprint You are looking for structure such as a heading, class, symbol, or path ### Name search Search recursively by filename: No "
+        },
+        {
+          "id": "select-by-pattern",
+          "label": "Select by pattern",
+          "summary": "Press Num+ to open Glob select . Examples: Choose: - Select — highlight matching files - Filter — hide everything that does not match Selection can optionally recurse through subdirectories. Filtering keeps folders visible so you can continue navigating. ---"
+        },
+        {
+          "id": "hidden-files",
+          "label": "Hidden files",
+          "summary": "Open: Shift+F1 → Show → Hidden to display hidden files and dotfiles. They are hidden by default. ---"
+        },
+        {
+          "id": "index-a-folder",
+          "label": "Index a folder",
+          "summary": "For larger projects, Tanit can build a searchable index beside the folder. The default store is: The index can contain Markdown, text, Office documents, structured data, and source code together. Once built, semantic searches work across the project without reopening every file for every question. Indexing is incremental: - unchanged files are skipped - changed files are reindexed - deleted files "
+        },
+        {
+          "id": "what-goes-into-the-default-index",
+          "label": "What goes into the default index",
+          "summary": "Format Extensions Indexed content :-- :-- :-- Markdown .md , .markdown , .mdx Body, title, summary, headings, front matter Text .txt Body Tables .csv Cell text Structured data .json , .yaml , .yml Text content Word .docx Extracted text Excel .xlsx Cell content PowerPoint .pptx Slide text C/C++ .c , .cc , .cpp , .cxx , .h , .hh , .hpp , .hxx , .inl Source plus symbols and adjacent comments Other so"
+        },
+        {
+          "id": "images-ocr-and-vision",
+          "label": "Images, OCR, and vision",
+          "summary": "Image pixels are not analyzed by the default folder index. That is intentional: OCR and visual understanding are much more expensive than indexing filenames and text. When required, Tanit can build separate image indexes using: Mode Adds :-- :-- OCR Text visible inside the image Vision A short description of what the image contains These are stored separately unless you explicitly choose otherwise"
+        },
+        {
+          "id": "searchable-but-not-included-in-the-default-index",
+          "label": "Searchable but not included in the default index",
+          "summary": "Live content search can still read formats such as: Type Extensions :-- :-- Logs .log , .tsv Web .html , .htm , .xml , .css , .svg Configuration .toml , .ini , .conf , .cfg , .env Scripts .sh , .ps1 , .bat , .cmd , .sql , .cmake Patches .diff , .patch These are not copied into the default semantic store. ---"
+        },
+        {
+          "id": "not-indexed",
+          "label": "Not indexed",
+          "summary": "Some formats are deliberately excluded: Format Reason :-- :-- PDF Not ingested directly Legacy Office .doc , .xls , and .ppt are not supported by the Open XML reader Executables Binary content Archives Binary/container content Audio Media rather than text Video Media rather than text They can still be opened or previewed where supported. PDFs can be converted to Markdown when their text is needed."
+        },
+        {
+          "id": "let-tanit-work-with-the-current-files",
+          "label": "Let Tanit work with the current files",
+          "summary": "The file panel, viewer, and Tanit share the same working context. Tanit knows: - the current folder - the selected files - the file open in the viewer That means you can say: instead of pasting a full directory path. Or: Or: The relevant file operations are visible in the Log. Destructive operations and writes outside the active workspace still use the normal consent controls. ---"
+        },
+        {
+          "id": "examples",
+          "label": "Examples",
+          "summary": "Ask Tanit What happens :-- :-- List the Markdown files here Searches the current workspace using a glob Where is \"grant\" in the filenames? Searches names recursively Find the heading \"### grant\" Searches file contents Where do we mention the serial number? Searches text with surrounding context How many photos are in this shoot? Lists supported image files Index this folder, then find where we dis"
+        },
+        {
+          "id": "large-files-stay-large",
+          "label": "Large files stay large",
+          "summary": "Tanit does not need to load an entire 2,000-line document into the model just to change one paragraph. For existing text files, the normal edit flow is: 1. locate the relevant section 2. read a small surrounding window 3. replace the exact target text Large reads are deliberately windowed, typically around a few hundred lines at a time. This reduces prompt size and avoids unnecessary rewriting. If"
+        },
+        {
+          "id": "fine-grained-edit-examples",
+          "label": "Fine-grained edit examples",
+          "summary": "Tanit finds that section, reads the relevant region, and changes only that part. Tanit creates the new file. Tanit removes that file after the appropriate confirmation. Invented paths do not silently resolve somewhere else. If a file is not part of the current workspace, select it, navigate to its folder, or reference it explicitly. ---"
+        },
+        {
+          "id": "build-a-document-from-many-sources",
+          "label": "Build a document from many sources",
+          "summary": "Tanit can combine information from multiple files without feeding every source document into the model at once. A typical flow is: 1. collect or download the source files 2. extract searchable text where necessary 3. build a temporary index 4. locate the most relevant passages 5. compose the result from those passages For example: Tanit can download the documents, convert their text, index the ext"
+        },
+        {
+          "id": "word-excel-and-powerpoint",
+          "label": "Word, Excel, and PowerPoint",
+          "summary": "Tanit uses components from OfficeCLI for Open XML documents. Word and Excel reading is integrated directly into Tanit in C++, keeping folder indexing fast and independent of Microsoft Office. PowerPoint processing uses OfficeCLI. For edits—such as changing workbook cells, creating workbooks, or adding slides—OfficeCLI can run as an MCP server. The same server can be used from: - Tanit - tanit-cli "
+        },
+        {
+          "id": "large-source-repositories",
+          "label": "Large source repositories",
+          "summary": "The standard folder index works well for mixed projects containing documentation, Office files, and source code. Very large repositories need something more structural when the question becomes: For that kind of work, add a source graph such as: codebase-memory-mcp It stores functions, classes, and call relationships in a graph that can be queried repeatedly. Configured MCP servers are shared by: "
+        },
+        {
+          "id": "tanit-storage",
+          "label": "Tanit storage",
+          "summary": "Tanit cloud storage is separate from the local filesystem. When signed in, Tanit can list, upload, and download files stored there. Local globs and folder searches remain local to this PC unless another location is explicitly selected. ---"
+        },
+        {
+          "id": "status-bar",
+          "label": "Status bar",
+          "summary": "The bottom of the file panel shows the state of the current view, including: - number of items - number of selected items - current view mode - view shortcut - current sort - sort direction - sort shortcut - active type-ahead text - active glob filter Examples: The status bar makes the current view and sort state visible without opening another menu. ---"
+        },
+        {
+          "id": "useful-combinations",
+          "label": "Useful combinations",
+          "summary": "For moving files between locations, open two file panels , put the source on one side and the destination on the other, then drag or use Copy / Move. For a compact directory, use Brief (Alt+2) . For general browsing, use Type (Alt+3) . For cleanup, use Size (Alt+4) and then Ctrl+F6 once folder totals have been calculated. For visual cleanup, use Sunburst (Alt+8) and drill into the largest slices. "
+        }
+      ]
     },
     {
       "id": "documentation:feature-images",
@@ -17132,7 +17508,44 @@
       "outputs": [
         "image"
       ],
-      "source": "releases/web-docs/features/feature-images.md"
+      "source": "releases/web-docs/features/feature-images.md",
+      "sections": [
+        {
+          "id": "clean-a-shoot-offline",
+          "label": "Clean a shoot (offline)",
+          "summary": "Junk scores pixels on a small thumbnail: dark, blown, blur, flat, tiny. No LLM, no sidecar. Sharp subject on a white wall is not blur — it keeps a high edge peak. Dry-run, then Recycle Bin on Windows: XBlox: imageAnalyze (every decoded file) and imageFind mode junk . Duplicates are a different pass. Default --by fingerprint : one libvips thumbnail, then dHash / pHash / edge hash. No LLM. Tanit Vie"
+        },
+        {
+          "id": "catalog-and-ask",
+          "label": "Catalog and ask",
+          "summary": "Meta writes description sidecars next to the file ( .md / .json ) and can update EXIF. Needs a recognition provider (Chat image recognition). --dry-run prints JSON and writes nothing. Understand is the question, not the cataloguer. No sidecar. Local llama VLM or the same cloud recognition model. Chat uses image understand (not image meta — that tool is gone from the agent catalog). XBlox: imageUnd"
+        },
+        {
+          "id": "search-the-tree",
+          "label": "Search the tree",
+          "summary": "search search is unified file search (exact first; semantic after you index). It is not the junk scorer. search detail expands a hit through the owning adapter. search action (replace) is reserved — do not rely on it yet. In the app, the file panel Search is the same idea next to the folder. ---"
+        },
+        {
+          "id": "resize-and-compress-no-model",
+          "label": "Resize and compress (no model)",
+          "summary": "libvips, Sharp-like fit. Convert format in the same call. This is not “remove the object” — that is transform. Chat: image resize , image crop . XBlox: imageResize . Compress is CLI (and an internal agent helper); there is no XBlox compress block. ---"
+        },
+        {
+          "id": "create-then-edit",
+          "label": "Create, then edit",
+          "summary": "Create — text to image. No input file. Optional -r style / brand stills. Provider/model from Chat image settings unless you pass --provider / --model / --preset . Transform — edit a file that already exists. Prompt is the action (“remove the watermark”, “composite the logo”). Destination is the input; content to insert goes on -r , not as a second --src (that would edit each file separately). Chat"
+        },
+        {
+          "id": "grab-a-still",
+          "label": "Grab a still",
+          "summary": "XBlox imageScreenshot — monitor, window, or interactive pick, optional clipboard. Chat image from camera — list devices, then capture a JPEG into the current folder. Same capture stack as video image . ---"
+        },
+        {
+          "id": "app-cli-chat-xblox",
+          "label": "App, CLI, Chat, XBlox",
+          "summary": "Use it when :-- :------------ File panel Browse, select, Search; Chat sees the current folder Chat “What’s in this?”, “make a square webp”, “remove the cable” CLI Scripts, Recycle Bin after a dry-run, duplicate sessions XBlox Analyze → Find junk → Resize → hand to the next block Job CLI Chat tool XBlox :---- :---- :---------- :------ Junk / name find --junk / -p (CLI / block) imageAnalyze , imageF"
+        }
+      ]
     },
     {
       "id": "documentation:feature-integration",
@@ -17200,7 +17613,59 @@
       "options": [],
       "inputs": [],
       "outputs": [],
-      "source": "releases/web-docs/features/feature-integration.md"
+      "source": "releases/web-docs/features/feature-integration.md",
+      "sections": [
+        {
+          "id": "what-you-get",
+          "label": "What you get",
+          "summary": "You offer What that means :---------- :---------------- A managed Windows AI workstation One product employees open and use Desktop + CLI in the same environment Interactive work and scripted jobs share one runtime Local models on the PC llama.cpp text/VLM, whisper, ONNX — privacy and offline without a cloud account Shared model host on the LAN One stronger machine can serve classmates or lab seat"
+        },
+        {
+          "id": "built-for-managed-desktop-deployment",
+          "label": "Built for managed desktop deployment",
+          "summary": "Operational properties partners care about: - Lightweight desktop runtime — suitable for ordinary office, lab, and edge PCs. - Local-first when required — files, models, and tools can remain within the customer environment; local llama.cpp inference is a first-class path ( Local.EnableLlama ), not an afterthought. - One execution environment — desktop UI, CLI, and headless automation use the same "
+        },
+        {
+          "id": "what-a-partner-can-compose",
+          "label": "What a partner can compose",
+          "summary": "A customer site — machine shop, office floor, or school lab — can look like this with shipped surfaces: Need Guide :----- :------ Encryption, signing, Hello GPO, signing Disable MCP, skills, tools, CLI verbs Policy list / ADMX Sandbox (AppContainer / LPAC) Security CLI Encrypted portable config feature-security Import commands / MCP / prompts Settings migration Headless agents and batch CLI, tools"
+        },
+        {
+          "id": "distribution-routes",
+          "label": "Distribution routes",
+          "summary": "- Direct — teams configure themselves; same security and CLI as everyone else. - Partners — deployment and first-line support; e.g. “Managed AI Desktop” per seat. - OEM — the customer-facing product is yours; Tanit is the runtime. “Integrator Edition” is a deployment concept , not a second binary: same application, partner-owned policy, tools, and support. ---"
+        },
+        {
+          "id": "deployment-playbook",
+          "label": "Deployment playbook",
+          "summary": "### 1. Install and shape the UI - Ship the product package; deploy ADMX via PolicyDefinitions\\ and install gpo.ps1 (gpo-setup). - Push the same keys with Intune / MDM where that is your channel. - Hide panels and Settings tabs end users should not change ( UI.Panels. , UI.Settings.EnableAdvancedTab , MCP/command editors). - Launch shapes: tanit --ui-preset chat viewer main , optional --layout and "
+        },
+        {
+          "id": "local-models-and-shared-hosts",
+          "label": "Local models and shared hosts",
+          "summary": "Tanit runs models on the workstation (llama.cpp text and VLM, whisper.cpp, ONNX media pipelines) so classrooms, shops, and offices can stay offline or keep prompts inside the building. Hardware still has to match the model — which is why partners often put the heavy model on one machine and let thin clients talk to it. That host is the same Tanit runtime — not a second stack. Seats keep the manage"
+        },
+        {
+          "id": "msp-deployments",
+          "label": "MSP deployments",
+          "summary": "You supply the workstation and governance surface. The MSP supplies deployment, relationship, and first-line support. A repeatable package: shared ADMX baseline + per-customer .pmbackup / MCP set + health checks ( tanit-security gpo effective , storage verify). ---"
+        },
+        {
+          "id": "industrial-and-oem-deployments",
+          "label": "Industrial and OEM deployments",
+          "summary": "XBlox includes Modbus (client/server, coils, registers) and MQTT (client/broker), plus file/VFS and local-model blocks. Together with vision and media CLIs, that supports ask-the-machine / manuals / folders workflows on the same PC as the equipment. OEM pattern: machine-specific MCP, on-disk manuals, diagnostic commands, STRICT policy, optional chat-focused UI. Commercial model can follow per inst"
+        },
+        {
+          "id": "schools-and-labs",
+          "label": "Schools and labs",
+          "summary": "- One model host, many seats — run local models on a staff/lab PC and serve the room over the LAN with llm agent --serve (see Local models and shared hosts). - Restrict cloud providers where policy requires; keep Local.EnableLlama and Custom OpenAI-compatible endpoints under GPO. - Hide Advanced settings; disable tools and CLI verbs that do not belong in the lab; require encryption and signing. - "
+        },
+        {
+          "id": "scope-notes",
+          "label": "Scope notes",
+          "summary": "Available now and documented above: managed Windows runtime, GPO/ADMX/Intune, vendor policy.json , secure storage and .pmbackup , security gateway and sandbox, MCP / commands / XBlox / CLI, UI lockdown and launch presets, industrial protocol blocks, local models and the OpenAI-compatible --serve host for LAN sharing. On the partner roadmap (use today’s alternatives meanwhile): - Full white-label p"
+        }
+      ]
     },
     {
       "id": "documentation:feature-markdown",
@@ -17277,7 +17742,79 @@
         "markdown",
         "video"
       ],
-      "source": "releases/web-docs/features/feature-markdown.md"
+      "source": "releases/web-docs/features/feature-markdown.md",
+      "sections": [
+        {
+          "id": "standard-markdown",
+          "label": "Standard Markdown",
+          "summary": "### Headings Level 2–4 headings are collected into the document table of contents. Add a stable ID when another link must keep working after the heading text changes: Without an explicit ID, Tanit generates one from the heading text. ### Text formatting ### Links Relative links use the Markdown document's folder or web base URL. External web links open through the system browser integration. ### L"
+        },
+        {
+          "id": "document-metadata",
+          "label": "Document metadata",
+          "summary": "Place YAML frontmatter at the beginning of the file: Tanit displays the title, subtitle, description, author or authors, date, tags, language, status, template, modified date, bibliography, and permissions. Set toc: false to hide the table of contents. A table of contents is shown only when the document has level 2–4 headings. ---"
+        },
+        {
+          "id": "code",
+          "label": "Code",
+          "summary": "Indented code and fenced code blocks are supported: const answer: number = 42; Syntax highlighting is available for common C/C++, JavaScript, TypeScript, JSON, Bash/shell, CSS, HTML/XML, Python, and Rust fences. Code blocks also provide actions for copying, staging in the console, and sending code to Chat. ---"
+        },
+        {
+          "id": "mermaid-diagrams",
+          "label": "Mermaid diagrams",
+          "summary": "Use mermaid or mmd : flowchart LR Markdown -- Parse Parse -- Render Render -- Viewer Sequence diagrams, state diagrams, class diagrams, and other diagram types supported by the bundled Mermaid version can use the same fence. ---"
+        },
+        {
+          "id": "xblox-documents",
+          "label": "XBlox documents",
+          "summary": "Embed an XBlox flow with an xblox or xblox-json fence: { \"document\": { \"context\": {}, \"roots\": [ { \"kind\": \"stdout\", \"message\": \"Hello from Markdown\" } ], \"version\": 1 }, \"options\": { \"editable\": false } } The block is rendered by Tanit's XBlox viewer. XBlox availability and actions can depend on the installed edition and policy. ---"
+        },
+        {
+          "id": "math-and-chemistry",
+          "label": "Math and chemistry",
+          "summary": "Inline math uses one dollar sign: Display math uses two: A fenced math block is also supported: \\sum {i=1}^{n} i = \\frac{n(n+1)}{2} KaTeX syntax is used. Chemistry expressions can use \\ce{...} where supported by the bundled KaTeX extensions: ---"
+        },
+        {
+          "id": "citations",
+          "label": "Citations",
+          "summary": "Tanit recognizes citation references in text: Citation keys may contain letters, numbers, , - , . , : , and @ . The viewer preserves the key and optional page text as structured citation metadata. It does not fetch a bibliography or format a reference list. ---"
+        },
+        {
+          "id": "callouts-and-scientific-blocks",
+          "label": "Callouts and scientific blocks",
+          "summary": "Container directives render structured callout boxes: Supported directive names: - note - tip - warning - danger - definition - theorem - proof - example - experiment - exercise - question - answer - citation Example: Unknown directives are not promoted to custom components. ---"
+        },
+        {
+          "id": "raw-html",
+          "label": "Raw HTML",
+          "summary": "Benign inline HTML can be used when Markdown has no equivalent: HTML is sanitized. Scripts, event handlers, unsafe URLs, and unsupported elements or attributes are removed. Do not rely on raw HTML for executable content. ---"
+        },
+        {
+          "id": "images",
+          "label": "Images",
+          "summary": "### Basic images Use a local path relative to the Markdown file: Or use a web URL: Clicking an image opens the built-in lightbox. Press Escape , click the backdrop, or use the close button to leave it. The expand button enters native monitor fullscreen rather than browser-element fullscreen. Enter native fullscreen immediately when the image is opened: Add a caption with the standard image title: "
+        },
+        {
+          "id": "videos",
+          "label": "Videos",
+          "summary": "Video uses standard image syntax plus pm-media=\"video\" : Common video extensions ( .mp4 , .webm , .ogg , .mov , .mkv , and .m3u8 ) are also recognized as video automatically, but the explicit attribute is recommended. ### Local and web video Local file beside the Markdown document: HTTPS source: Relative source in web-hosted Markdown: For local documents, keep assets in the Markdown folder or its "
+        },
+        {
+          "id": "media-links",
+          "label": "Media links",
+          "summary": "A normal link to a recognized local media file opens that file in Tanit's dedicated viewer: The path is resolved relative to the Markdown document before it is sent to the native viewer. Image, video, audio, and PDF extensions are recognized. ${VAR} templates use the same expansion as custom commands ( command variables.cpp ). The host expands them with the current document as ${CURRENT FILE} befo"
+        },
+        {
+          "id": "path-and-url-rules",
+          "label": "Path and URL rules",
+          "summary": "Source Resolution --- --- ./image.png Relative to the Markdown file or web document assets/image.png Relative to the Markdown file or web document https://… Loaded directly data:image/… Allowed for inline images ${KNOWNFOLDER:Videos}/clip.mp4 Expanded by command variables, then opened natively ${USER:name}/clip.mp4 User setting from Settings → Variables ${PATH DIR:CURRENT FILE}/assets/a.mp4 Folder"
+        },
+        {
+          "id": "compatibility-notes",
+          "label": "Compatibility notes",
+          "summary": "- The Markdown source remains readable in ordinary Markdown tools. Tools that do not know pm- attributes may display the trailing attribute text. - Image and media profiles control presentation; they do not modify source files. - Video codec support comes from the browser/WebView runtime. - HLS ( .m3u8 ) support varies by platform and runtime. - Autoplay can be blocked by browser policy. - Raw HTM"
+        }
+      ]
     },
     {
       "id": "documentation:feature-security",
@@ -17346,13 +17883,45 @@
       "options": [],
       "inputs": [],
       "outputs": [],
-      "source": "releases/web-docs/features/feature-security.md"
+      "source": "releases/web-docs/features/feature-security.md",
+      "sections": [
+        {
+          "id": "two-layers-do-not-mix-them-up",
+          "label": "Two layers (do not mix them up)",
+          "summary": "Layer Job Where you touch it :------ :---- :------------------- Secure settings storage Encrypt + sign profile documents at rest; portable backup/sync Settings → Advanced , tanit-cli settings … , tanit-security storage … Agent security gateway Allow / deny / consent for tools, paths, shell, MCP Profiles, consent UI, security overview, security CLI Signing a commands.json proves the file was not ta"
+        },
+        {
+          "id": "what-is-protected-on-disk",
+          "label": "What is protected on disk",
+          "summary": "When secure storage is enabled, the live copies are encrypted and signed documents under the profile (default on Windows: %APPDATA%\\PolyMech\\pm-image ), addressed as: Plain files with those names are import/export views. Editing a plaintext file by hand does not make it active until the app or security CLI imports it into the matching pm:// document. Local keys live under the profile ( resources\\k"
+        },
+        {
+          "id": "in-the-app-settings-advanced",
+          "label": "In the app (Settings → Advanced)",
+          "summary": "Open Settings , then the Advanced tab (may be hidden by Group Policy UI.Settings.EnableAdvancedTab ). ### Profile file and archive - Export / Import settings — portable JSON (or Windows PME1 when encryption is checked for local export). - Export / Import archive — ZIP of the profile tree (skips WebView cache folders and local key files that must not travel). ### Encrypted portable backup ( .pmback"
+        },
+        {
+          "id": "command-line-tanit-cli",
+          "label": "Command line (tanit-cli)",
+          "summary": "Profile path and portable exchange (examples): Useful flags: --cloud-storage-key , --passphrase , --no-include-commands , --no-include-mcp , --no-include-prompts , --remote-dir , --server-url . Full option lists: Tanit CLI — settings (search settings ). For secure-document verify / plain import into pm:// URIs, use tanit-security — see Security CLI ( storage , settings-store , command-store , …) a"
+        },
+        {
+          "id": "admins",
+          "label": "Admins",
+          "summary": "Need Where :----- :------ Overview of agent + storage posture Security overview Force Hello / signing / encryption GPO setup — verification and secure-document policies Hide Advanced settings UI.Settings.EnableAdvancedTab Scripted probes and storage ops Security CLI Headless / CI without Hello prompts PM SECURE STORAGE SECRET PROTECTOR=dpapi (see signing) Managed desktops should treat .pmbackup an"
+        },
+        {
+          "id": "what-users-should-expect",
+          "label": "What users should expect",
+          "summary": "- Inside normal day-to-day use, encryption and signing are automatic. - Sensitive import / export / key change may show a Windows Hello or key password prompt (then a short session cache so you are not asked every save). - Cloud download on a new PC needs either the passphrase or a copy of .cloud storage key from the source machine. - Missing profile folder or settings.json on first run is normal:"
+        }
+      ]
     },
     {
       "id": "documentation:feature-video",
       "kind": "documentation",
       "label": "Tanit Video",
-      "description": "Record the screen, a window, or a camera — then play the file in the centre viewer. Cursor, PiP, skin, captions, skip-dead-air, native mpv playback. tanit, video, capture, playback, mpv, screen-record, webcam, skin, tutorial Tanit records a monitor, one application, a precise region, or a webcam — without making you crop the desktop afterward. On top of that: tutorial-grade cursor, a picture-in-picture camera with skin, captions after you stop, and skip-dead-air so the MP4 does not keep the coffee pause. Open the file in the centre viewer and it plays there — native on-screen co Jobs: Play a file; A walkthrough; A short; You on camera; Screen and a camera tile; Skip the silence, keep the captions; Generate when there is no take; When the frame should become data; App, CLI, XBlox",
+      "description": "Record the screen, a window, or a camera — then play the file in the centre viewer. Cursor, PiP, skin, captions, skip-dead-air, native mpv playback. tanit, video, capture, playback, mpv, screen-record, webcam, skin, tutorial Tanit records a monitor, one application, a precise region, or a webcam — without making you crop the desktop afterward. On top of that: tutorial-grade cursor, a picture-in-picture camera with skin, captions after you stop, and skip-dead-air so the MP4 does not keep the coffee pause. Open the file in the centre viewer and it plays there — native on-screen co Jobs: Play a file; A walkthrough; A short; You on camera; Screen and a camera tile; Skip the silence, keep the captions; Generate when there is no take; When the frame should become data",
       "available": true,
       "terms": [
         "tanit",
@@ -17417,8 +17986,7 @@
         "frame",
         "should",
         "become",
-        "data",
-        "cli"
+        "data"
       ],
       "options": [],
       "inputs": [
@@ -17429,7 +17997,49 @@
         "mp4",
         "video"
       ],
-      "source": "releases/web-docs/features/feature-video.md"
+      "source": "releases/web-docs/features/feature-video.md",
+      "sections": [
+        {
+          "id": "play-a-file",
+          "label": "Play a file",
+          "summary": "Select a video in the file panel. The centre viewer opens it. Typical extensions: .mp4 , .m4v , .mkv , .webm , .mov , .avi , .wmv , .ogv , .mpg / .mpeg , .ts / .m2ts / .mts , .3gp / .3g2 . Direct https:// files play too — from the file panel, or tanit --src \"https://host/clip.mp4\" (HLS .m3u8 as well). YouTube pages and other site URLs stay in the browser — youtube-dl is off. ### Native player (def"
+        },
+        {
+          "id": "a-walkthrough",
+          "label": "A walkthrough",
+          "summary": "Pick the monitor or the window. Mux desktop sound, or mix in your mic. Highlight the pointer so viewers can follow. A region stays attached if the window moves: Windows .mp4 is H.264 + optional AAC (48 kHz stereo — the same mux as audio record). NVIDIA can use NVENC; otherwise the Windows encoder. Clean the mic on the mux worker (not the capture callback): Desktop-only loopback stays dry. Stop wit"
+        },
+        {
+          "id": "a-short",
+          "label": "A short",
+          "summary": "Portrait canvas, fill-crop, follow the cursor. Shift+wheel zooms while you record ( --interactive-zoom ). Square + interactive zoom: Zoom / follow / bitrate need the fast Windows capture path (WGC). That is the default for screen/window. ---"
+        },
+        {
+          "id": "you-on-camera",
+          "label": "You on camera",
+          "summary": "Omit --input for the default webcam ( video info lists names). --preview opens a live window; close it to stop. Skin (off unless you set it) smooths the face oval minus eyes and lips. --skin is the heavy one at 1080p. GPU ROI blur when available, else CPU. A meeting-style stack — gain, warmth, under-eye, redness, restore the eyes after skin: Full mesh (skin + lips + teeth): Quote hex in PowerShell"
+        },
+        {
+          "id": "screen-and-a-camera-tile",
+          "label": "Screen and a camera tile",
+          "summary": "Picture-in-picture without OBS. The screen stays on fast WGC. Skin / blur / mirror apply to the circle only . Corner, size, and shape ( circle / rounded / square ) are optional. XBlox: cameraOverlay , cameraPosition , skin , blur , mirror . Tanit Cam (Windows 11): Zoom / Teams see the processed camera while this process runs. --dst may be empty. Register once: video vcam-register . ---"
+        },
+        {
+          "id": "skip-the-silence-keep-the-captions",
+          "label": "Skip the silence, keep the captions",
+          "summary": "Idle auto-pause omits dead air from the MP4 without stopping capture. Keyboard, mouse, speech, or a real frame change keep it rolling; a coffee pause does not. Manual pause still wins. Captions are after finalize , on the encoded timeline (paused time already gone). YouTube-accepted SRT (default), VTT, or SBV — not a live HUD. STT follows Chat voice settings unless you pass --stt-provider / --stt-"
+        },
+        {
+          "id": "generate-when-there-is-no-take",
+          "label": "Generate when there is no take",
+          "summary": "Prompt → MP4 through the Chat video provider ( video-fast / video-deep ). At most two keyframes ( --src start / last). Extra style images are -r , not a third --src . More patterns: video create examples. XBlox: videoCreate . ---"
+        },
+        {
+          "id": "when-the-frame-should-become-data",
+          "label": "When the frame should become data",
+          "summary": "video detect runs YOLO on a webcam or screen:N — boxes, pose, classify. Optional annotated still or burn-in MP4. XBlox videoDetect can run child blocks when something is found. videoSource pumps frames into a flow without a for loop. That is a different job from recording a tutorial. List devices and windows with video info / videoListScreens . ---"
+        }
+      ]
     }
   ],
   "workflows": [
@@ -18020,15 +18630,6 @@
       "source": "dist/shared/xblox/video/video-detect-obb.xblox"
     },
     {
-      "id": "workflow:video-detect-pose",
-      "label": "video-detect-pose",
-      "nodeIds": [
-        "block:videoDetect",
-        "block:log"
-      ],
-      "source": "dist/shared/xblox/video/video-detect-pose.xblox"
-    },
-    {
       "id": "workflow:video-detect-record",
       "label": "video-detect-record",
       "nodeIds": [
@@ -18054,25 +18655,6 @@
         "block:log"
       ],
       "source": "dist/shared/xblox/video/video-detect-yolo26-obb.xblox"
-    },
-    {
-      "id": "workflow:video-detect-yolo26-pose",
-      "label": "video-detect-yolo26-pose",
-      "nodeIds": [
-        "block:videoDetect",
-        "block:log"
-      ],
-      "source": "dist/shared/xblox/video/video-detect-yolo26-pose.xblox"
-    },
-    {
-      "id": "workflow:video-detect-yolo26-seg",
-      "label": "video-detect-yolo26-seg",
-      "nodeIds": [
-        "block:videoDetect",
-        "block:log",
-        "block:log"
-      ],
-      "source": "dist/shared/xblox/video/video-detect-yolo26-seg.xblox"
     },
     {
       "id": "workflow:video-detect-yolo26",

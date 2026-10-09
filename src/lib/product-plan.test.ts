@@ -8,7 +8,11 @@ import type {
   ProductCapabilitySnapshot,
 } from "../shared/capabilities.js";
 import type { PhraseRecord, PhraseSource } from "../shared/phrases.js";
-import { harvestProductJobs } from "../shared/product-plan.js";
+import {
+  expandProductPlanJobs,
+  harvestProductJobs,
+  heuristicIntentSeeds,
+} from "../shared/product-plan.js";
 import {
   clearProductPlan,
   productJobSeeds,
@@ -540,4 +544,194 @@ test("removeProductPlanJobs and clearProductPlan drop saved parts", async () => 
   );
   await clearProductPlan(outDir);
   assert.equal(await readProductPlan(outDir), null);
+});
+
+const videoSnapshot: ProductCapabilitySnapshot = {
+  ...snapshot,
+  capabilities: [
+    ...snapshot.capabilities,
+    {
+      ...capability("documentation:feature-video", "documentation", "Tanit Video", [
+        "video",
+        "record",
+      ]),
+      sections: [
+        {
+          id: "a-walkthrough",
+          label: "A walkthrough",
+          summary: "Pick the monitor or the window and mux desktop sound.",
+          command: 'tanit-cli video record --input "screen:0" --dst demo.mp4',
+        },
+        {
+          id: "skip-the-silence",
+          label: "Skip the silence, keep the captions",
+          summary: "Idle auto-pause omits dead air from the MP4.",
+          command: "tanit-cli video record --auto-pause both",
+        },
+      ],
+    },
+  ],
+};
+
+test("documented feature pages split into search intents before SERP", async () => {
+  const harvested = harvestProductJobs(videoSnapshot);
+  const parent = harvested.find((job) => job.id === "job:documentation:feature-video");
+  assert.ok(parent);
+  const expanded = expandProductPlanJobs(harvested, videoSnapshot.capabilities);
+  assert.ok(!expanded.some((job) => job.id === "job:documentation:feature-video"));
+  const intents = expanded.filter((job) => job.proofKind === "intent");
+  assert.deepEqual(
+    intents.map((job) => job.id),
+    [
+      "job:intent:feature-video:a-walkthrough",
+      "job:intent:feature-video:skip-the-silence",
+    ]
+  );
+  assert.deepEqual(
+    productJobSeeds(intents[1]),
+    heuristicIntentSeeds("Skip the silence, keep the captions")
+  );
+
+  const seen: string[][] = [];
+  const plan = await runProductPlan(
+    {
+      jobIds: ["job:documentation:feature-video"],
+      serpCallsPerJob: 2,
+      decide: false,
+      qualify: false,
+    },
+    {
+      loadSnapshot: async () => videoSnapshot,
+      loadSettings: async () => ({ blacklist: [], product: null }),
+      discover: async (job, seeds) => {
+        seen.push(seeds);
+        assert.equal(job.proofKind, "intent");
+        assert.ok(!seeds.some((seed) => /tanit video/i.test(seed)));
+        return {
+          phrases: [phrase(seeds[0] ?? job.label, 60)],
+          landscape: [],
+          meta: { calls: [], errors: [] },
+        };
+      },
+    }
+  );
+  assert.equal(seen.length, 2);
+  assert.equal(plan.metrics.jobs, 2);
+  assert.ok(plan.chapters.every((chapter) => chapter.proofKind === "intent"));
+});
+
+test("expanded feature intents inherit parent override terms", () => {
+  const capabilities = videoSnapshot.capabilities.map((node) =>
+    node.id === "documentation:feature-video"
+      ? {
+          ...node,
+          description: "Native fast video player",
+          terms: ["player", "playback", "mp4"],
+        }
+      : node
+  );
+  const harvested = harvestProductJobs({ ...videoSnapshot, capabilities });
+  const parent = harvested.find((job) => job.id === "job:documentation:feature-video");
+  assert.ok(parent?.terms.includes("player"));
+  const intents = expandProductPlanJobs(harvested, capabilities);
+  assert.ok(
+    intents.every(
+      (job) =>
+        job.proofKind !== "intent" ||
+        (job.terms.includes("player") && job.terms.includes("playback"))
+    )
+  );
+});
+
+test("expand fills documented intent seeds before discover", async () => {
+  let expandCalls = 0;
+  const seen: string[][] = [];
+  const plan = await runProductPlan(
+    {
+      jobIds: ["job:intent:feature-video:skip-the-silence"],
+      serpCallsPerJob: 2,
+      expand: true,
+      decide: false,
+      qualify: false,
+    },
+    {
+      loadSnapshot: async () => videoSnapshot,
+      loadSettings: async () => ({ blacklist: [], product: null }),
+      expand: async (jobs) => {
+        expandCalls += 1;
+        return jobs.map((job) =>
+          job.id === "job:intent:feature-video:skip-the-silence"
+            ? {
+                ...job,
+                seeds: ["skip silence while recording", "remove dead air from screen recording"],
+                notThis: ["how to tag video", "youtube clip"],
+              }
+            : job
+        );
+      },
+      discover: async (_job, seeds) => {
+        seen.push(seeds);
+        return {
+          phrases: [
+            phrase("skip silence while recording", 70),
+            phrase("how to tag video", 80),
+          ],
+          landscape: [],
+          meta: { calls: [], errors: [] },
+        };
+      },
+    }
+  );
+  assert.equal(expandCalls, 1);
+  assert.deepEqual(seen, [
+    ["skip silence while recording", "remove dead air from screen recording"],
+  ]);
+  const chapter = plan.chapters[0] ?? plan.appendix[0];
+  assert.ok(chapter?.phrases.some((row) => row.phrase === "skip silence while recording"));
+  assert.ok(!chapter?.phrases.some((row) => row.phrase === "how to tag video"));
+});
+
+test("expand drops blank seeds and skips SERP when none remain", async () => {
+  const seen: string[] = [];
+  const plan = await runProductPlan(
+    {
+      jobIds: [
+        "job:intent:feature-video:a-walkthrough",
+        "job:intent:feature-video:skip-the-silence",
+      ],
+      serpCallsPerJob: 2,
+      expand: true,
+      decide: false,
+      qualify: false,
+    },
+    {
+      loadSnapshot: async () => videoSnapshot,
+      loadSettings: async () => ({ blacklist: [], product: null }),
+      expand: async (jobs) =>
+        jobs.map((job) =>
+          job.id === "job:intent:feature-video:skip-the-silence"
+            ? { ...job, seeds: [], notThis: [] }
+            : {
+                ...job,
+                seeds: ["how to record a window with microphone", "", "..."],
+                notThis: [""],
+              }
+        ),
+      discover: async (job, seeds) => {
+        seen.push(job.id);
+        assert.deepEqual(seeds, ["how to record a window with microphone"]);
+        return {
+          phrases: [phrase(seeds[0], 60)],
+          landscape: [],
+          meta: { calls: [], errors: [] },
+        };
+      },
+    }
+  );
+  assert.deepEqual(seen, ["job:intent:feature-video:a-walkthrough"]);
+  const blank = [...plan.chapters, ...plan.appendix].find(
+    (chapter) => chapter.jobId === "job:intent:feature-video:skip-the-silence"
+  );
+  assert.equal(blank?.action, "skip");
+  assert.equal(blank?.phrases.length, 0);
 });

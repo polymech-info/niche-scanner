@@ -48,6 +48,7 @@ test("collects unique social and app leaves from organics", () => {
               link: "https://www.reddit.com/r/recording/comments/1",
               snippet: "Zoom H1n",
               source: "Reddit",
+              date: "2 days ago",
             },
             {
               position: 3,
@@ -69,6 +70,9 @@ test("collects unique social and app leaves from organics", () => {
   const leaves = collectRankingLeaves(doc);
   assert.equal(leaves.social.length, 1);
   assert.equal(leaves.social[0].network, "reddit");
+  assert.equal(leaves.social[0].host, "reddit.com");
+  assert.equal(leaves.social[0].position, 2);
+  assert.equal(leaves.social[0].date, "2 days ago");
   assert.deepEqual(leaves.social[0].phrases, ["best voice recorder"]);
   assert.equal(leaves.apps.length, 1);
   assert.equal(leaves.apps[0].network, "play");

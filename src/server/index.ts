@@ -8,8 +8,9 @@ import { createSettingsRouter } from "./routes/settings.js";
 import { createOpportunitiesRouter } from "./routes/opportunities.js";
 import { createCapabilitiesRouter } from "./routes/capabilities.js";
 import { createProductPlanRouter } from "./routes/product-plan.js";
+import { createUserConfigRouter } from "./routes/user-config.js";
 import { opportunityStore } from "./services/opportunity-store.js";
-import { loadEnv, resolvedSearchesDir } from "../lib/env.js";
+import { loadEnv, resolvedDataRoot, resolvedSearchesDir } from "../lib/env.js";
 import { ensureLogDirs, log, logFile } from "../lib/log.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -116,6 +117,10 @@ export async function startServer(
   app.use(createProductPlanRouter());
   app.use(createSearchesRouter());
   app.use(createSettingsRouter());
+  app.use(createUserConfigRouter(resolvedDataRoot()));
+  app.use("/api", (_req, res) => {
+    res.status(404).json({ error: "Not found" });
+  });
 
   const clientDir = path.join(__dirname, "..", "client");
   app.use(express.static(clientDir));

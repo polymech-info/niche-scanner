@@ -17,6 +17,13 @@ export interface CapabilityOption {
   default?: string;
 }
 
+export interface CapabilitySection {
+  id: string;
+  label: string;
+  summary: string;
+  command?: string;
+}
+
 export interface ProductCapability {
   id: string;
   kind: CapabilityKind;
@@ -28,6 +35,7 @@ export interface ProductCapability {
   inputs: string[];
   outputs: string[];
   source: string;
+  sections?: CapabilitySection[];
 }
 
 export interface CapabilityWorkflow {
@@ -139,6 +147,7 @@ export interface RawCapabilityDocument {
   label: string;
   description: string;
   source: string;
+  sections?: CapabilitySection[];
 }
 
 const INTERNAL_COMMANDS = new Set(["commands", "info", "service"]);
@@ -498,6 +507,7 @@ function documentNode(raw: RawCapabilityDocument): ProductCapability {
     inputs: ioTerms(`${raw.label} ${raw.description}`),
     outputs: ioTerms(raw.description),
     source: raw.source,
+    ...(raw.sections?.length ? { sections: raw.sections } : {}),
   };
 }
 

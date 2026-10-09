@@ -533,6 +533,11 @@ await yargs(hideBin(process.argv))
           default: 2,
           describe: "SerpAPI budget per job: 2 = autocomplete only, 4 = + landscape",
         })
+        .option("expand", {
+          type: "boolean",
+          default: false,
+          describe: "LLM-fill search seeds for documented feature jobs before SERP",
+        })
         .option("decide", {
           type: "boolean",
           default: false,
@@ -559,6 +564,7 @@ await yargs(hideBin(process.argv))
           describe: "Disable disk cache under <out>/.cache",
         })
         .option("force-discover", { type: "boolean", default: false })
+        .option("force-expand", { type: "boolean", default: false })
         .option("force-decide", { type: "boolean", default: false })
         .option("force-qualify", { type: "boolean", default: false })
         .option("force-enrich", { type: "boolean", default: false })
@@ -630,12 +636,14 @@ await yargs(hideBin(process.argv))
         serpCallsPerJob: (argv.serpBudget as 2 | 4) ?? 2,
         jobIds: jobIds?.length ? jobIds : undefined,
         maxJobs: argv.maxJobs as number | undefined,
+        expand: Boolean(argv.expand),
         decide: Boolean(argv.decide),
         qualify: Boolean(argv.qualify),
         enrich: Boolean(argv.enrich),
         enrichers: parseEnricherSpecs(argv.enrichers as string | undefined),
         useCache: !argv.noCache,
         forceDiscover: force || Boolean(argv.forceDiscover),
+        forceExpand: force || Boolean(argv.forceExpand),
         forceDecide: force || Boolean(argv.forceDecide),
         forceQualify: force || Boolean(argv.forceQualify),
         forceEnrich: force || Boolean(argv.forceEnrich),

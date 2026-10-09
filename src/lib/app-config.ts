@@ -10,8 +10,10 @@ import {
 import {
   isCustomCapabilityId,
   parseCapabilityOverlay,
+  parseCapabilityTextOverride,
   parseCustomCapability,
   type CapabilityOverlay,
+  type CapabilityTextOverride,
 } from "../shared/capability-overlay.js";
 import { resolvedDataRoot } from "./env.js";
 
@@ -219,6 +221,50 @@ export async function upsertCustomCapability(
     return {
       ...current,
       capabilities: { ...overlay, custom },
+    };
+  });
+}
+
+export async function upsertCapabilityOverride(
+  id: string,
+  raw: unknown
+): Promise<AppSettings> {
+  const trimmed = id.trim();
+  if (!trimmed) throw new Error("Capability id is empty");
+  if (isCustomCapabilityId(trimmed)) {
+    throw new Error("Edit custom capabilities from the custom form");
+  }
+  const patch = parseCapabilityTextOverride(raw);
+  if (!patch) throw new Error("Override needs description or terms");
+  return withAppConfig((current) => {
+    const overlay = overlayOf(current);
+    const previous = overlay.overrides?.[trimmed] ?? {};
+    const merged: CapabilityTextOverride = { ...previous };
+    if ("description" in patch) merged.description = patch.description;
+    if ("terms" in patch) merged.terms = patch.terms;
+    return {
+      ...current,
+      capabilities: {
+        ...overlay,
+        overrides: { ...overlay.overrides, [trimmed]: merged },
+      },
+    };
+  });
+}
+
+export async function removeCapabilityOverride(
+  id: string
+): Promise<AppSettings> {
+  const trimmed = id.trim();
+  if (!trimmed) throw new Error("Capability id is empty");
+  return withAppConfig((current) => {
+    const overlay = overlayOf(current);
+    if (!overlay.overrides || !(trimmed in overlay.overrides)) return current;
+    const overrides = { ...overlay.overrides };
+    delete overrides[trimmed];
+    return {
+      ...current,
+      capabilities: { ...overlay, overrides },
     };
   });
 }

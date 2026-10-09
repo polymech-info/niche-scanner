@@ -37,6 +37,7 @@ function persist(state: {
   scriptDescriptions: Record<string, string>;
   expandedScriptGroups: string[];
   hiddenScripts: string[];
+  planFavourites: string[];
   userConfigReady: boolean;
 }) {
   persistUserSettings({
@@ -47,6 +48,7 @@ function persist(state: {
     scriptDescriptions: state.scriptDescriptions,
     expandedScriptGroups: state.expandedScriptGroups,
     hiddenScripts: state.hiddenScripts,
+    planFavourites: state.planFavourites,
     ready: state.userConfigReady,
   });
 }
@@ -76,6 +78,7 @@ interface Store {
   scriptDescriptions: Record<string, string>;
   expandedScriptGroups: string[];
   hiddenScripts: string[];
+  planFavourites: string[];
   userConfigReady: boolean;
 
   setConfig: (config: AppConfig) => void;
@@ -127,6 +130,7 @@ interface Store {
   toggleFavouriteMute: (groupId: string, scriptId: string) => void;
   setScriptDescription: (id: string, description: string) => void;
   /** Drop a script id from favourites / descriptions after package.json delete. */
+  togglePlanFavourite: (jobId: string) => void;
   forgetScriptId: (id: string) => void;
   /** Rewrite favourite + description keys after a script rename. */
   renameScriptId: (oldId: string, newId: string) => void;
@@ -151,6 +155,7 @@ export const useStore = create<Store>((set, get) => ({
   scriptDescriptions: {},
   expandedScriptGroups: [],
   hiddenScripts: [],
+  planFavourites: [],
   userConfigReady: false,
 
   setConfig: (config) => set({ config }),
@@ -323,6 +328,7 @@ export const useStore = create<Store>((set, get) => ({
       scriptDescriptions: config.scriptDescriptions ?? {},
       expandedScriptGroups: config.expandedScriptGroups ?? [],
       hiddenScripts: config.hiddenScripts ?? [],
+      planFavourites: config.planFavourites ?? [],
       userConfigReady: true,
     })),
 
@@ -504,6 +510,16 @@ export const useStore = create<Store>((set, get) => ({
       });
       persist({ ...state, favouriteGroups });
       return { favouriteGroups };
+    }),
+
+  togglePlanFavourite: (jobId) =>
+    set((state) => {
+      const has = state.planFavourites.includes(jobId);
+      const planFavourites = has
+        ? state.planFavourites.filter((id) => id !== jobId)
+        : [...state.planFavourites, jobId];
+      persist({ ...state, planFavourites });
+      return { planFavourites };
     }),
 
   setScriptDescription: (id, description) =>

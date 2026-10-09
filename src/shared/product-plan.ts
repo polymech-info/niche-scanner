@@ -13,7 +13,11 @@ import {
 import { collectRankingLeaves, type RankingLeaf } from "./ranking.js";
 import type { ProductProfile } from "./config.js";
 
-export type ProductJobProofKind = "workflow" | "command" | "documentation";
+export type ProductJobProofKind =
+  | "workflow"
+  | "command"
+  | "documentation"
+  | "intent";
 export type ProductPlanAction = "pillar" | "section" | "skip";
 
 export interface ProductJob {
@@ -24,6 +28,11 @@ export interface ProductJob {
   capabilityIds: string[];
   sources: string[];
   terms: string[];
+  parentId?: string;
+  summary?: string;
+  command?: string;
+  seeds?: string[];
+  notThis?: string[];
 }
 
 export interface ProductJobDiscovery {
@@ -52,6 +61,10 @@ export interface ProductPlanChapter {
   absorbedQueries: string[];
   proofKind: ProductJobProofKind;
   proof: string[];
+  parentId?: string;
+  summary?: string;
+  command?: string;
+  seeds?: string[];
   fit: CapabilityFit;
   demandScore: number;
   priority: number;
@@ -191,6 +204,23 @@ function capabilityTerms(nodes: ProductCapability[]): string[] {
   );
 }
 
+export function isCustomProductJob(job: ProductJob): boolean {
+  if (
+    job.id.startsWith("job:custom:") ||
+    job.id.startsWith("job:command:custom.")
+  ) {
+    return true;
+  }
+  return (
+    job.capabilityIds.some(
+      (id) => id.startsWith("custom:") || id.startsWith("command:custom.")
+    ) ||
+    job.sources.some(
+      (source) => source === "custom" || /commands --json custom/.test(source)
+    )
+  );
+}
+
 export function harvestProductJobs(
   snapshot: ProductCapabilitySnapshot
 ): ProductJob[] {
@@ -259,14 +289,118 @@ export function harvestProductJobs(
       terms: capabilityTerms([node]),
     }));
 
+  const overlay = snapshot.capabilities
+    .filter((node) => node.available !== false)
+    .filter(
+      (node) => node.id.startsWith("custom:") || node.source === "custom"
+    )
+    .filter((node) => node.kind !== "documentation" && node.kind !== "command")
+    .map(
+      (node): ProductJob => ({
+        id: `job:${node.id}`,
+        label: node.label,
+        proofKind: "documentation",
+        proofIds: [node.id],
+        capabilityIds: [node.id],
+        sources: [node.source || "custom"],
+        terms: capabilityTerms([node]),
+      })
+    );
+
   const seen = new Set<string>();
-  return [...workflowGroups.values(), ...commands, ...documents]
+  return [...workflowGroups.values(), ...commands, ...documents, ...overlay]
     .filter((job) => {
       if (seen.has(job.id)) return false;
       seen.add(job.id);
       return true;
     })
     .sort((a, b) => a.id.localeCompare(b.id));
+}
+
+function capabilityOf(
+  job: ProductJob,
+  capabilities: ProductCapability[]
+): ProductCapability | undefined {
+  const id =
+    job.proofIds.find((proof) => proof.startsWith("documentation:")) ??
+    job.id.replace(/^job:/, "");
+  return capabilities.find((node) => node.id === id);
+}
+
+export function heuristicIntentSeeds(label: string): string[] {
+  const cleaned = normalizePhrase(label)
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length > 1 && !STOP_WORDS.has(token))
+    .slice(0, 6)
+    .join(" ");
+  if (!cleaned) return [label];
+  return unique([cleaned, `how to ${cleaned}`]);
+}
+
+export function documentationIntentJobs(
+  job: ProductJob,
+  capability?: ProductCapability | null
+): ProductJob[] {
+  if (job.proofKind !== "documentation") return [];
+  const sections = capability?.sections ?? [];
+  if (sections.length < 2) return [];
+  const feature = (capability?.id ?? job.proofIds[0] ?? job.id).replace(
+    /^documentation:/,
+    ""
+  );
+  return sections.map((section) => ({
+    id: `job:intent:${feature}:${section.id}`,
+    label: section.label,
+    proofKind: "intent",
+    proofIds: unique([
+      ...job.proofIds,
+      `${capability?.id ?? job.proofIds[0]}#${section.id}`,
+    ]),
+    capabilityIds: job.capabilityIds,
+    sources: job.sources,
+    terms: unique([
+      ...job.terms,
+      ...(capability?.terms ?? []),
+      ...tokens(section.label),
+      ...tokens(section.summary),
+      ...tokens(section.command ?? ""),
+    ]),
+    parentId: job.id,
+    summary: section.summary,
+    command: section.command,
+    seeds: heuristicIntentSeeds(section.label),
+  }));
+}
+
+export function expandProductPlanJobs(
+  jobs: ProductJob[],
+  capabilities: ProductCapability[]
+): ProductJob[] {
+  const out: ProductJob[] = [];
+  const seen = new Set<string>();
+  const push = (job: ProductJob) => {
+    if (seen.has(job.id)) return;
+    seen.add(job.id);
+    out.push(job);
+  };
+  for (const job of jobs) {
+    const intents = documentationIntentJobs(job, capabilityOf(job, capabilities));
+    if (intents.length >= 2) {
+      for (const intent of intents) push(intent);
+      continue;
+    }
+    push(job);
+  }
+  return out;
+}
+
+function phraseRejected(phrase: string, job: ProductJob): boolean {
+  if (!job.notThis?.length) return false;
+  const banned = new Set(job.notThis.flatMap((row) => tokens(row)));
+  if (!banned.size) return false;
+  const hits = unique(tokens(phrase)).filter((token) => banned.has(token)).length;
+  if (hits >= 2) return true;
+  return hits > 0 && phraseOverlap(phrase, job) <= hits;
 }
 
 function fitFor(job: ProductJob, overlap: number): CapabilityFit {
@@ -349,8 +483,10 @@ export function buildProductPlan(
       if (record.class?.role === "skip" || deniedPlatform(record.phrase, productProfile)) {
         continue;
       }
+      if (phraseRejected(record.phrase, discovery.job)) continue;
       const overlap = phraseOverlap(record.phrase, discovery.job);
-      if (!overlap) continue;
+      const minOverlap = discovery.job.proofKind === "intent" ? 2 : 1;
+      if (overlap < minOverlap) continue;
       const key = normalizePhrase(record.phrase);
       const claims = contenders.get(key) ?? [];
       claims.push({
@@ -400,7 +536,9 @@ export function buildProductPlan(
       landscape: discovery?.landscape,
     });
     const canonical = claims.length ? chooseCanonical(claims) : undefined;
-    const fit = canonical?.fit ?? (job.proofKind === "workflow" ? "composed" : "direct");
+    const fit =
+      canonical?.fit ??
+      (job.proofKind === "workflow" ? "composed" : "direct");
     const demandScore = claims.reduce(
       (score, claim) => Math.max(score, claim.record.scores.niche),
       0
@@ -419,6 +557,10 @@ export function buildProductPlan(
       ),
       proofKind: job.proofKind,
       proof: job.proofIds,
+      parentId: job.parentId,
+      summary: job.summary,
+      command: job.command,
+      seeds: job.seeds,
       fit,
       demandScore,
       priority: Math.round(demandScore * (fitRank(fit) / 3)),
